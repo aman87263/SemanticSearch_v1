@@ -1,14 +1,12 @@
 import './App.css';
 import MainLayout from "./components/layout/MainLayout";
+import ChatPage from './pages/Chat/ChatPage';
 
 function App() {
 
   return (
     <MainLayout>
-      <div style={{ padding: 20 }}>
-        <h2>Chat Area</h2>
-        <p>This will become your RAG chat interface</p>
-      </div>
+      <ChatPage />
     </MainLayout>
   )
 }
