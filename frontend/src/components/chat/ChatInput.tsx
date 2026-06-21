@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Box, TextField, Button } from "@mui/material";
+import { Box, TextField, IconButton } from "@mui/material";
+import SendIcon from "@mui/icons-material/Send";
 
 export default function ChatInput({
   onSend,
@@ -19,22 +20,28 @@ export default function ChatInput({
       sx={{
         display: "flex",
         gap: 1,
-        padding: 2,
+        p: 2,
         borderTop: "1px solid #e0e0e0",
+        bgcolor: "white",
       }}
     >
       <TextField
         fullWidth
         size="small"
-        placeholder="Ask something..."
+        placeholder="Message..."
         value={text}
         onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSend()}
-      />    
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+          }
+        }}
+      />
 
-      <Button variant="contained" onClick={handleSend}>
-        Send
-      </Button>
+      <IconButton onClick={handleSend} color="primary">
+        <SendIcon />
+      </IconButton>
     </Box>
   );
 }

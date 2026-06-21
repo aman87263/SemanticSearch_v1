@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Box } from "@mui/material";
 import ChatInput from "../../components/chat/ChatInput";
 import MessageList from "../../components/chat/MessageList";
@@ -8,20 +8,35 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hi! Ask me anything from your documents 🚀",
+      content: "Hi 👋 Ask me anything from your documents.",
     },
   ]);
+
+  const endRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToBottom = () => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSend = (text: string) => {
     const userMessage: Message = { role: "user", content: text };
 
-    // fake assistant response for now
-    const assistantMessage: Message = {
-      role: "assistant",
-      content: "This is a mock response (backend coming later).",
-    };
+    setMessages((prev) => [...prev, userMessage]);
 
-    setMessages((prev) => [...prev, userMessage, assistantMessage]);
+    // simulate AI delay (ChatGPT feel)
+    setTimeout(() => {
+      const assistantMessage: Message = {
+        role: "assistant",
+        content:
+          "This is a simulated response. Later this will come from your RAG backend.",
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    }, 800);
   };
 
   return (
@@ -30,10 +45,24 @@ export default function ChatPage() {
         display: "flex",
         flexDirection: "column",
         height: "100%",
+        alignItems: "center",
       }}
     >
-      <MessageList messages={messages} />
-      <ChatInput onSend={handleSend} />
+      {/* Centered chat container like ChatGPT */}
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: "800px",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <MessageList messages={messages} />
+
+        <div ref={endRef} />
+        <ChatInput onSend={handleSend} />
+      </Box>
     </Box>
   );
 }
