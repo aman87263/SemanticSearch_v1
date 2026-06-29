@@ -17,7 +17,11 @@ import AddIcon from "@mui/icons-material/Add";
 import { NavLink } from "react-router-dom";
 
 export default function Sidebar() {
-
+    const menuItems = [
+        { label: "Chat", icon: <ChatIcon />, path: "/chat" },
+        { label: "Documents", icon: <DescriptionIcon />, path: "/documents" },
+        { label: "Settings", icon: <SettingsIcon />, path: "/settings" },
+    ];
     return (
         <Box
             sx={{
@@ -29,13 +33,13 @@ export default function Sidebar() {
             }}
         >
 
-            <Box p={2}>
+            <Box sx={{ p: 2 }}>
                 <Typography variant="h6">
                     AI Knowledge Assistant
                 </Typography>
             </Box>
 
-            <Box px={2}>
+            <Box sx={{ px: 2 }}>
                 <Button
                     fullWidth
                     startIcon={<AddIcon />}
@@ -49,35 +53,17 @@ export default function Sidebar() {
 
             <List>
 
-                <ListItemButton component={NavLink} to="/chat">
+                {menuItems.map((item) => (
+                    <ListItemButton key={item.path} component={NavLink} to={item.path}>
+                        <ListItemIcon>
+                            {item.icon}
+                        </ListItemIcon>
 
-                    <ListItemIcon>
-                        <ChatIcon />
-                    </ListItemIcon>
+                        <ListItemText primary={item.label} />
 
-                    <ListItemText primary="Chat" />
+                    </ListItemButton>
+                ))}
 
-                </ListItemButton>
-
-                <ListItemButton component={NavLink} to="/documents">
-
-                    <ListItemIcon>
-                        <DescriptionIcon />
-                    </ListItemIcon>
-
-                    <ListItemText primary="Documents" />
-
-                </ListItemButton>
-
-                <ListItemButton component={NavLink} to="/settings">
-
-                    <ListItemIcon>
-                        <SettingsIcon />
-                    </ListItemIcon>
-
-                    <ListItemText primary="Settings" />
-
-                </ListItemButton>
 
             </List>
 
