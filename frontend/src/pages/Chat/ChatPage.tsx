@@ -9,7 +9,25 @@ export default function ChatPage() {
         {
             id: crypto.randomUUID(),
             role: "assistant",
-            content: "Hi! Ask me anything from your documents.",
+            content: `
+# Welcome 👋
+
+I'm your AI Knowledge Assistant.
+
+## I can help with:
+
+- System Design
+- Kubernetes
+- .NET
+- LLMs
+
+Here is some code:
+
+\`\`\`python
+def hello():
+    print("Hello World")
+\`\`\`
+`,
             createdAt: new Date(),
         },
     ]);
@@ -77,7 +95,7 @@ export default function ChatPage() {
             <Box
                 sx={{
                     width: "100%",
-                    maxWidth: "800px",
+                    maxWidth: "960px",
                     flex: 1,
                     display: "flex",
                     flexDirection: "column",

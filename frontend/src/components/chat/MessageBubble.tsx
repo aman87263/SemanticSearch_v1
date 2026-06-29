@@ -1,5 +1,6 @@
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import type { Message } from "../../types/chat";
+import MarkdownRenderer from "../common/MarkdownRenderer";
 
 interface MessageBubbleProps {
     message: Message;
@@ -17,22 +18,30 @@ export default function MessageBubble({
                 justifyContent: isUser ? "flex-end" : "flex-start",
             }}
         >
-            <Box
-                sx={{
-                    maxWidth: "75%",
-                    px: 2,
-                    py: 1.5,
-                    borderRadius: 2,
-                    bgcolor: isUser ? "#1976d2" : "#f5f5f5",
-                    color: isUser ? "white" : "black",
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.6,
-                }}
-            >
-                <Typography variant="body2">
+            {isUser ? (
+                <Box
+                    sx={{
+                        maxWidth: "70%",
+                        bgcolor: "#1976d2",
+                        color: "white",
+                        px: 2,
+                        py: 1.5,
+                        borderRadius: 2,
+                    }}
+                >
                     {message.content}
-                </Typography>
-            </Box>
+                </Box>
+            ) : (
+                <Box
+                    sx={{
+                        width: "100%",
+                        px: 2,
+                        py: 1,
+                    }}
+                >
+                    <MarkdownRenderer content={message.content} />
+                </Box>
+            )}
         </Box>
     );
 }
