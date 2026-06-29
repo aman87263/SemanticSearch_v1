@@ -3,6 +3,7 @@ import { Box } from "@mui/material";
 import ChatInput from "../../components/chat/ChatInput";
 import MessageList from "../../components/chat/MessageList";
 import type { Message } from "../../types/chat";
+import { sendMessage } from "../../services/chatService";
 
 export default function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([
@@ -42,7 +43,7 @@ def hello():
         scrollToBottom();
     }, [messages]);
 
-    const handleSend = (text: string) => {
+    const handleSend = async (text: string) => {
         const userMessage: Message = {
             id: crypto.randomUUID(),
             role: "user",
@@ -50,8 +51,7 @@ def hello():
             createdAt: new Date(),
         };
 
-        const fullResponse =
-            "This is a streamed response. Later this will come from your RAG backend with real token streaming.";
+        const fullResponse = await sendMessage(text);
 
         // add user message + empty assistant message
         setMessages((prev) => [
@@ -70,13 +70,13 @@ def hello():
                 const lastMsg = updated[updated.length - 1];
 
                 if (lastMsg.role === "assistant") {
-                    lastMsg.content = fullResponse.slice(0, index);
+                    lastMsg.content = fullResponse.content.slice(0, index);
                 }
 
                 return updated;
             });
 
-            if (index >= fullResponse.length) {
+            if (index >= fullResponse.content.length) {
                 clearInterval(interval);
             }
         }, 20); // speed of streaming
