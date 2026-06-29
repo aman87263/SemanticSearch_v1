@@ -7,8 +7,10 @@ import type { Message } from "../../types/chat";
 export default function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([
         {
+            id: crypto.randomUUID(),
             role: "assistant",
-            content: "Hi 👋 Ask me anything from your documents.",
+            content: "Hi! Ask me anything from your documents.",
+            createdAt: new Date(),
         },
     ]);
 
@@ -23,7 +25,12 @@ export default function ChatPage() {
     }, [messages]);
 
     const handleSend = (text: string) => {
-        const userMessage: Message = { role: "user", content: text };
+        const userMessage: Message = {
+            id: crypto.randomUUID(),
+            role: "user",
+            content: text,
+            createdAt: new Date(),
+        };
 
         const fullResponse =
             "This is a streamed response. Later this will come from your RAG backend with real token streaming.";
@@ -32,7 +39,7 @@ export default function ChatPage() {
         setMessages((prev) => [
             ...prev,
             userMessage,
-            { role: "assistant", content: "" },
+            { role: "assistant", content: "", id: crypto.randomUUID(), createdAt: new Date() },
         ]);
 
         let index = 0;
