@@ -1,12 +1,12 @@
 import './App.css';
 import MainLayout from "./components/layout/MainLayout";
-import ChatPage from './pages/Chat/ChatPage';
+import AppRoutes from './routes/AppRoutes';
 
 function App() {
 
   return (
     <MainLayout>
-      <ChatPage />
+      <AppRoutes />
     </MainLayout>
   )
 }
