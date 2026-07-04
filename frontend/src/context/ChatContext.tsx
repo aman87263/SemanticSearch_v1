@@ -1,8 +1,7 @@
 import {
     createContext,
-    useContext,
     useState,
-    type ReactNode,
+    type ReactNode
 } from "react";
 
 import { sendMessage as sendMessageToAI } from "../services/chatService";
@@ -34,6 +33,19 @@ export function ChatProvider({
 
     const [loading, setLoading] = useState(false);
 
+    function updateMessage(
+        id: string,
+        updates: Partial<Message>
+    ) {
+        setMessages(prev =>
+            prev.map(message =>
+                message.id === id
+                    ? { ...message, ...updates }
+                    : message
+            )
+        );
+    }
+
     async function sendMessage(text: string) {
         const userMessage: Message = {
             id: crypto.randomUUID(),
@@ -47,17 +59,27 @@ export function ChatProvider({
         setLoading(true);
 
         try {
-            const response: ChatResponse = await sendMessageToAI(text);
+
+
+            const assistantId = crypto.randomUUID();
 
             const assistantMessage: Message = {
-                id: crypto.randomUUID(),
+                id: assistantId,
                 role: "assistant",
-                content: response.content,
+                content: "",
                 createdAt: new Date(),
-                sources: response.sources,
             };
+            setMessages(prev => [
+                ...prev,
+                assistantMessage,
+            ]);
 
-            setMessages((prev) => [...prev, assistantMessage]);
+            const response: ChatResponse = await sendMessageToAI(text);
+
+            updateMessage(assistantId, {
+                content: response.content,
+                sources: response.sources,
+            });
         } finally {
             setLoading(false);
         }
@@ -75,4 +97,5 @@ export function ChatProvider({
         </ChatContext.Provider>
     );
 }
+
 
