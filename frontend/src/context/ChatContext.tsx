@@ -45,7 +45,9 @@ export function ChatProvider({
             )
         );
     }
-
+    function delay(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
     async function sendMessage(text: string) {
         const userMessage: Message = {
             id: crypto.randomUUID(),
@@ -75,9 +77,22 @@ export function ChatProvider({
             ]);
 
             const response: ChatResponse = await sendMessageToAI(text);
+            const fullText = response.content;
+            let currentText = "";
+
+            for (const char of fullText) {
+
+                currentText += char;
+
+                updateMessage(assistantId, {
+                    content: currentText,
+                });
+
+                await delay(20);
+            }
 
             updateMessage(assistantId, {
-                content: response.content,
+                content: currentText,
                 sources: response.sources,
             });
         } finally {
