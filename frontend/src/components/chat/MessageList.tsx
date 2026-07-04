@@ -1,8 +1,12 @@
 import { Box } from "@mui/material";
 import type { Message } from "../../types/chat";
 import MessageBubble from "./MessageBubble";
+import { useAutoScroll } from "../../hooks/useAutoScroll";
+
+
 
 export default function MessageList({ messages }: { messages: Message[] }) {
+    const bottomRef = useAutoScroll(messages);
     return (
         <Box
             sx={{
@@ -21,6 +25,7 @@ export default function MessageList({ messages }: { messages: Message[] }) {
                     message={message}
                 />
             ))}
+            <div ref={bottomRef} />
         </Box>
     );
 }
