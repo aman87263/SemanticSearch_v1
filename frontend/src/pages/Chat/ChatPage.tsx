@@ -1,86 +1,10 @@
-import { useEffect, useRef, useState } from "react";
 import { Box } from "@mui/material";
 import ChatInput from "../../components/chat/ChatInput";
 import MessageList from "../../components/chat/MessageList";
-import type { Message } from "../../types/chat";
-import { sendMessage } from "../../services/chatService";
+import { useChat } from "../../context/ChatContext";
 
 export default function ChatPage() {
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: `
-# Welcome 👋
-
-I'm your AI Knowledge Assistant.
-
-## I can help with:
-
-- System Design
-- Kubernetes
-- .NET
-- LLMs
-
-Here is some code:
-
-\`\`\`python
-def hello():
-    print("Hello World")
-\`\`\`
-`,
-            createdAt: new Date(),
-        },
-    ]);
-
-    const endRef = useRef<HTMLDivElement | null>(null);
-
-    const scrollToBottom = () => {
-        endRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-    const handleSend = async (text: string) => {
-        const userMessage: Message = {
-            id: crypto.randomUUID(),
-            role: "user",
-            content: text,
-            createdAt: new Date(),
-        };
-
-        const fullResponse = await sendMessage(text);
-
-        // add user message + empty assistant message
-        setMessages((prev) => [
-            ...prev,
-            userMessage,
-            { role: "assistant", content: "", id: crypto.randomUUID(), createdAt: new Date() },
-        ]);
-
-        let index = 0;
-
-        const interval = setInterval(() => {
-            index++;
-
-            setMessages((prev) => {
-                const updated = [...prev];
-                const lastMsg = updated[updated.length - 1];
-
-                if (lastMsg.role === "assistant") {
-                    lastMsg.content = fullResponse.content.slice(0, index);
-                }
-
-                return updated;
-            });
-
-            if (index >= fullResponse.content.length) {
-                clearInterval(interval);
-            }
-        }, 20); // speed of streaming
-    };
+    const { messages, sendMessage, loading } = useChat();
 
     return (
         <Box
@@ -91,11 +15,10 @@ def hello():
                 alignItems: "center",
             }}
         >
-            {/* Centered chat container like ChatGPT */}
             <Box
                 sx={{
                     width: "100%",
-                    maxWidth: "960px",
+                    maxWidth: "900px",
                     flex: 1,
                     display: "flex",
                     flexDirection: "column",
@@ -103,8 +26,13 @@ def hello():
             >
                 <MessageList messages={messages} />
 
-                <div ref={endRef} />
-                <ChatInput onSend={handleSend} />
+                {loading && (
+                    <Box sx={{ px: 2, py: 1 }}>
+                        AI is thinking...
+                    </Box>
+                )}
+
+                <ChatInput onSend={sendMessage} />
             </Box>
         </Box>
     );
