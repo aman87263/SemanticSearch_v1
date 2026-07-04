@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import ChatInput from "../../components/chat/ChatInput";
 import MessageList from "../../components/chat/MessageList";
-import { useChat } from "../../context/ChatContext";
+import { useChat } from "../../hooks/useChat";
 
 export default function ChatPage() {
     const { messages, sendMessage, loading } = useChat();

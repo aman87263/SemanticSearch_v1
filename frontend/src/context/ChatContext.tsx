@@ -14,7 +14,7 @@ interface ChatContextType {
     sendMessage: (text: string) => Promise<void>;
 }
 
-const ChatContext = createContext<ChatContextType | undefined>(undefined);
+export const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 interface ChatProviderProps {
     children: ReactNode;
@@ -76,14 +76,3 @@ export function ChatProvider({
     );
 }
 
-export function useChat() {
-    const context = useContext(ChatContext);
-
-    if (!context) {
-        throw new Error(
-            "useChat must be used inside ChatProvider"
-        );
-    }
-
-    return context;
-}
