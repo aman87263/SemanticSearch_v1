@@ -1,19 +1,61 @@
 from fastapi import FastAPI
 
-app = FastAPI(
+from app.api.routes import router as api_router
+
+app = FastAPI(  # You should only have one:app = FastAPI()
     title="RAG Backend",
     version="1.0.0",
 )
 
+app.include_router(api_router)  # Include the API router that contains all the routes from different modules.
 
-@app.get("/")
-def root():
-    return {
-        "message": "Welcome to the RAG Backend!"
-    }
+"""
+FastAPI Application
+        │
+        ├── Health Router
+        ├── Documents Router
+        ├── Chat Router
+        ├── Auth Router
+        └── Settings Router
+router = APIRouter(
+    prefix="/health",
+    tags=["Health"],
+)
+@router.get("")
+@router.get("/version")
 
-@app.get("/health")
-def health_check():
-    return {
-        "status": "healthy"
-    }
+Now inside documents.py
+from fastapi import APIRouter
+
+router = APIRouter(
+    prefix="/documents",
+    tags=["Documents"],
+)
+
+
+Frontend
+
+DocumentsPage
+
+↓
+
+DocumentProvider
+
+↓
+
+DocumentService
+
+↓
+
+Backend
+
+Documents Router
+
+↓
+
+Document Service
+
+↓
+
+Document Repository
+"""
