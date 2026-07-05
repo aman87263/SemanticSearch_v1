@@ -8,6 +8,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import type { Document } from "../../types/document";
 import { useDocuments } from "../../hooks/useDocuments";
+import StatusChip from "./StatusChip";
 
 interface DocumentRowProps {
     document: Document;
@@ -26,7 +27,7 @@ export default function DocumentRow({
             </TableCell>
 
             <TableCell>
-                {document.status}
+                <StatusChip status={document.status} />
             </TableCell>
 
             <TableCell align="right">
