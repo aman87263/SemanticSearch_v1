@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import {
@@ -14,24 +14,50 @@ export const SUPPORTED_FILE_TYPES = [
 
 export default function UploadZone() {
     const { uploadDocument } = useDocuments();
+    const [isDragging, setIsDragging] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    function handleDragOver(
+        event: React.DragEvent<HTMLDivElement>
+    ) {
+        event.preventDefault();
+
+        setIsDragging(true);
+    }
+    function handleDragLeave() {
+        setIsDragging(false);
+    }
+    async function handleDrop(
+        event: React.DragEvent<HTMLDivElement>
+    ) {
+        event.preventDefault();
+
+        setIsDragging(false);
+
+        const file = event.dataTransfer.files[0];
+        await uploadSelectedFile(file);
+    }
+    async function uploadSelectedFile(file?: File) {
+        if (!file) {
+            return;
+        }
+
+        if (file.type !== "application/pdf") {
+            alert("Only PDF files are supported.");
+            return;
+        }
+
+        await uploadDocument(file);
+    }
 
     async function handleFileSelect(
         event: React.ChangeEvent<HTMLInputElement>
     ) {
         const file = event.target.files?.[0];
 
-        if (!file) {
-            return;
-        }
 
-        if (!SUPPORTED_FILE_TYPES.includes(file.type)) {
-            alert("Only PDF files are supported.");
-            return;
-        }
-
-        await uploadDocument(file);
+        await uploadSelectedFile(file);
 
         // Allow selecting the same file again
         event.target.value = "";
@@ -44,13 +70,21 @@ export default function UploadZone() {
                 p: 5,
                 textAlign: "center",
                 border: "2px dashed",
-                borderColor: "divider",
+                borderColor: isDragging
+                    ? "primary.main"
+                    : "divider",
+                backgroundColor: isDragging
+                    ? "action.hover"
+                    : "transparent",
                 cursor: "pointer",
                 "&:hover": {
                     borderColor: "primary.main",
                 },
             }}
             onClick={() => fileInputRef.current?.click()}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
         >
             <input
                 ref={fileInputRef}
