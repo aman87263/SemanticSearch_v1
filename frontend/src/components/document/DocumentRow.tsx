@@ -27,7 +27,7 @@ export default function DocumentRow({
             </TableCell>
 
             <TableCell>
-                <StatusChip status={document.status} />
+                <StatusChip status={document.status} progress={document.progress} />
             </TableCell>
 
             <TableCell align="right">

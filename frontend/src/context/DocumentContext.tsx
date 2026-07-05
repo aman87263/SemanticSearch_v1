@@ -39,28 +39,26 @@ export function DocumentProvider({
         setLoading(true);
 
         try {
-            // 1. Upload (currently mock service)
+            // Upload the file (currently mocked)
             const document = await documentService.uploadDocument(file);
 
-            // 2. Add document to the list
+            // Add it to the UI immediately
             setDocuments(prev => [...prev, document]);
 
-            // 3. Simulate backend processing
-            await delay(1500);
+            // Simulate upload progress
+            await simulateUploadProgress(document.id);
 
+            // Backend starts processing
             updateDocument(document.id, {
                 status: "processing",
+                progress: 100,
             });
 
-            // 4. Simulate embedding completion
-            await delay(2000);
+            // Simulate embedding/chunking work
+            await simulateProcessing(document.id);
 
-            updateDocument(document.id, {
-                status: "ready",
-                chunkCount: Math.floor(Math.random() * 150) + 50,
-            });
         } catch (error) {
-            console.error(error);
+            console.error("Upload failed", error);
         } finally {
             setLoading(false);
         }
@@ -74,6 +72,32 @@ export function DocumentProvider({
         // Later:
         // const docs = await documentService.getDocuments();
         // setDocuments(docs);
+    }
+    async function simulateUploadProgress(
+        documentId: string
+    ) {
+
+        for (let progress = 0; progress <= 100; progress += 10) {
+
+            updateDocument(documentId, {
+                progress,
+            });
+
+            await delay(200);
+        }
+
+    }
+    async function simulateProcessing(
+        documentId: string
+    ): Promise<void> {
+
+        await delay(2000);
+
+        updateDocument(documentId, {
+            status: "ready",
+            progress: 100,
+            chunkCount: Math.floor(Math.random() * 150) + 50,
+        });
     }
     return (
         <DocumentContext.Provider

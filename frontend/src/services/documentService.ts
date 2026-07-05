@@ -13,5 +13,6 @@ export async function uploadDocument(file: File): Promise<Document> {
         size: file.size,
         uploadedAt: new Date(),
         status: "uploading",
+        progress: 0,
     };
 }

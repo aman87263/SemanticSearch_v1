@@ -11,6 +11,6 @@ export interface Document {
     uploadedAt: Date;
     status: DocumentStatus;
     chunkCount?: number;
-
+    progress: number;
     fileHash?: string;   // Returned by backend
 }
