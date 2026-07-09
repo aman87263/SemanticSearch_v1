@@ -33,29 +33,4 @@ router = APIRouter(
 )
 
 
-Frontend
-
-DocumentsPage
-
-↓
-
-DocumentProvider
-
-↓
-
-DocumentService
-
-↓
-
-Backend
-
-Documents Router
-
-↓
-
-Document Service
-
-↓
-
-Document Repository
 """
