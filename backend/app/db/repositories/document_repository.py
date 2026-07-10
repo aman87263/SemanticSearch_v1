@@ -1,8 +1,9 @@
 from app.schemas.document import Document
+from backend.app.db.repositories.interfaces.idocument_repository import IDocumentRepository
 from backend.app.schemas import document
 
 
-class DocumentRepository:
+class MemoryDocumentRepository(IDocumentRepository):
 
     def __init__(self):
         self._documents: list[Document] = []
