@@ -1,5 +1,5 @@
-from app.db.repositories.document_repository import DocumentRepository
-from backend.app.db.repositories.interfaces.idocument_repository import IDocumentRepository
+from app.db.repositories.document_repository import MemoryDocumentRepository
+from app.db.repositories.interfaces.document_repository import IDocumentRepository
 
 
 class DocumentService:

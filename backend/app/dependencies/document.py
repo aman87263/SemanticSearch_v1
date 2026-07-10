@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import Depends
 
-from app.db.repositories.interfaces.idocument_repository import (
+from app.db.repositories.interfaces.document_repository import (
     IDocumentRepository,
 )
 from app.db.repositories.document_repository import (

@@ -1,6 +1,6 @@
 from app.schemas.document import Document
-from backend.app.db.repositories.interfaces.idocument_repository import IDocumentRepository
-from backend.app.schemas import document
+from app.db.repositories.interfaces.document_repository import IDocumentRepository
+# from backend.app.schemas import document
 
 
 class MemoryDocumentRepository(IDocumentRepository):
