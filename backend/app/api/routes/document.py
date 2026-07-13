@@ -13,7 +13,7 @@ router = APIRouter(
 
 @router.get("/")
 def get_documents(
-    service: Annotated[
+    service: Annotated[#This is where dependency injection happens, we are injecting the DocumentService into the route handler
         DocumentService,
         Depends(get_document_service),
     ],
