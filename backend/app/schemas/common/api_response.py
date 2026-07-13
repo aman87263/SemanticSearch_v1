@@ -12,4 +12,4 @@ class ApiResponse(BaseModel, Generic[T]):
     success: bool
     data: T | None = None
     error: ApiError | None = None
-    metadata: ApiMetadata
+    metadata: ApiMetadata | None = None
