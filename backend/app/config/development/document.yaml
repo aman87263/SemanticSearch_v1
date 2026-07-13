@@ -1,0 +1,23 @@
+application:
+  name: AI Knowledge Platform
+
+document:
+  max_upload_size_mb: 100
+
+  allowed_extensions:
+    - pdf
+    - docx
+    - txt
+    - md
+
+duplicate:
+  allow_duplicate_files: false
+
+storage:
+  upload_directory: "./uploads"
+
+embedding:
+  provider: sentence-transformers
+
+llm:
+  provider: ollama

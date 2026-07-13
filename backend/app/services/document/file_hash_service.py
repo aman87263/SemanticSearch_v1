@@ -1,0 +1,3 @@
+class FileHashService:
+    def calculate_sha256(self, file_path: str) -> str:
+        ...

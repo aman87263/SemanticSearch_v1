@@ -1,5 +1,5 @@
-from backend.app.schemas.document.responses.document_response import DocumentResponse
-from backend.app.schemas.document.entities.document import Document
+from app.schemas.document.responses.document_response import DocumentResponse
+from app.schemas.document.entities.document import Document
 
 class DocumentMapper:
 

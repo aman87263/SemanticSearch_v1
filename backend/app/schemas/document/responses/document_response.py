@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from backend.app.schemas.document.entities.document import DocumentStatus
+from app.schemas.document.entities.document import DocumentStatus
 
 
 

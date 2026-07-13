@@ -1,6 +1,6 @@
 from app.db.repositories.document_repository import MemoryDocumentRepository
 from app.db.repositories.interfaces.document_repository import IDocumentRepository
-from backend.app.mappers.document_mapper import DocumentMapper
+from app.mappers.document_mapper import DocumentMapper
 
 
 class DocumentService:
