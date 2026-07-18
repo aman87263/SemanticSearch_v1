@@ -1,3 +1,9 @@
+from typing import BinaryIO
+
+
 class FileHashService:
-    def calculate_sha256(self, file_path: str) -> str:
-        ...
+
+    def calculate_hash(
+        self,
+        stream: BinaryIO,
+    ) -> str: ...
