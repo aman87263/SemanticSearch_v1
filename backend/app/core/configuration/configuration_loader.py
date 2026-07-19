@@ -15,15 +15,18 @@ class ConfigurationLoader:
         self._root = Path(__file__).resolve().parents[3]
 
         self._environment = EnvironmentProvider.get_environment()
+        print(f"self._root: {self._root}")
+        print(f"ConfigurationLoader: Environment set to {self._environment}")
 
     def load_yaml(
         self,
         file_name: str,
     ) -> dict:
 
-        base = self._root / "config" / "base" / file_name
+        base = self._root / "app" / "config" / "base" / file_name
 
-        env = self._root / "config" / self._environment / file_name
+        env = self._root / "app" / "config" / self._environment / file_name
+        print(f"ConfigurationLoader: Loading configuration from {base} and {env}")
 
         configuration = {}
 

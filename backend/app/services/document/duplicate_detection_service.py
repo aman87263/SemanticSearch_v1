@@ -1,7 +1,7 @@
-from backend.app.db.repositories.interfaces.document_repository import (
+from app.db.repositories.interfaces.document_repository import (
     IDocumentRepository,
 )
-from backend.app.schemas.document.entities.document import Document
+from app.schemas.document.entities.document import Document
 
 
 class DuplicateDetectionService:

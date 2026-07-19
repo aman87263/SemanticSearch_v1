@@ -8,7 +8,7 @@ class DocumentMapper:
 
         return DocumentResponse(
             id=document.id,
-            file_name=document.file_name,
+            file_name=document.name,
             size=document.size,
             status=document.status,
             upload_progress=document.upload_progress,

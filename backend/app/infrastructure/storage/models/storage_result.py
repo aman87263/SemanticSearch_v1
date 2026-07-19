@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class StorageResult(BaseModel):
 
-    path: str
+    storage_key: str
 
     size: int
 

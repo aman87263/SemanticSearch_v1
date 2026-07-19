@@ -1,32 +1,18 @@
-from pathlib import Path
+from abc import ABC, abstractmethod
 from typing import BinaryIO
-from uuid import uuid4
 
 from app.infrastructure.storage.models.storage_result import StorageResult
-from app.infrastructure.storage.providers.storage_provider import (
-    IStorageProvider,
-)
 
 
-class DocumentStorageService:
+class IStorageProvider(ABC):
 
-    def __init__(
-        self,
-        storage_provider: IStorageProvider,
-    ):
-        self._storage_provider = storage_provider
-
-    async def store(
+    @abstractmethod
+    async def upload(
         self,
         stream: BinaryIO,
-        original_file_name: str,
+        storage_key: str,
     ) -> StorageResult:
-
-        extension = Path(original_file_name).suffix.lower()
-
-        storage_key = f"documents/{uuid4()}{extension}"
-
-        return await self._storage_provider.upload(
-            stream,
-            storage_key,
-        )
+        """
+        Uploads a file stream to the configured storage.
+        """
+        pass

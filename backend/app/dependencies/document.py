@@ -4,11 +4,17 @@ from fastapi import Depends
 from app.db.repositories.interfaces.document_repository import (
     IDocumentRepository,
 )
-from app.db.repositories.document_repository import (
+from app.db.repositories.memory_document_repository import (
     MemoryDocumentRepository,
 )
 from app.services.document.document_service import DocumentService
-
+from app.infrastructure.storage.providers.local_storage_provider import (
+    LocalStorageProvider,
+)
+from app.services.document.document_storage_service import DocumentStorageService
+from app.services.document.duplicate_detection_service import DuplicateDetectionService
+from app.services.document.file_hash_service import FileHashService
+from app.services.document.file_validation_service import FileValidationService
 
 # -------------------------------------------------------------------------
 # Repository
@@ -33,6 +39,7 @@ def get_document_repository() -> IDocumentRepository:
 # Service
 # -------------------------------------------------------------------------
 
+
 def get_document_service(
     repository: Annotated[
         IDocumentRepository,
@@ -42,4 +49,14 @@ def get_document_service(
     """
     Returns a DocumentService with its dependencies injected.
     """
-    return DocumentService(repository)
+    storage_provider = LocalStorageProvider()
+
+    storage_service = DocumentStorageService(storage_provider)
+
+    return DocumentService(
+        repository=repository,
+        validation_service=FileValidationService(),
+        hash_service=FileHashService(),
+        duplicate_service=DuplicateDetectionService(repository),
+        storage_service=storage_service,
+    )

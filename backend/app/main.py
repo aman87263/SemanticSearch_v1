@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 
-from app.api.routes import router as api_router
+try:
+    from app.api.routes import router as api_router
+except ModuleNotFoundError:  # pragma: no cover - supports running as a package from repo root
+    from .api.routes import router as api_router
 
 app = FastAPI(  # You should only have one:app = FastAPI()
     title="RAG Backend",
