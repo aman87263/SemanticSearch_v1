@@ -12,6 +12,9 @@ from app.schemas.document.responses.document_response import DocumentResponse
 from app.schemas.document.entities.document import Document, DocumentStatus
 from datetime import datetime
 
+from app.schemas.document.responses.upload_document_response import UploadDocumentResponse
+from app.schemas.document.upload_outcome import UploadOutcome
+
 
 class DocumentService:
 
@@ -33,7 +36,7 @@ class DocumentService:
         documents = self._repository.get_all()
         return [DocumentMapper.to_response(doc) for doc in documents]
 
-    async def upload_document(self, request: UploadDocumentRequest) -> DocumentResponse:
+    async def upload_document(self, request: UploadDocumentRequest) -> UploadDocumentResponse:
 
         file = request.file
 
@@ -47,7 +50,10 @@ class DocumentService:
         existing = self._duplicate_service.find_duplicate(file_hash)
 
         if existing:
-            return DocumentMapper.to_response(existing)
+            return UploadDocumentResponse(
+                outcome=UploadOutcome.DUPLICATE,
+                document=DocumentMapper.to_response(existing),
+            )
 
         # 4. Store file
         storage_result = await self._storage_service.store(
@@ -73,7 +79,10 @@ class DocumentService:
         self._repository.add(document)
 
         # 7. Return DTO
-        return DocumentMapper.to_response(document)
+        return UploadDocumentResponse(
+            outcome=UploadOutcome.CREATED,
+            document=DocumentMapper.to_response(document),
+        )
 
     def delete_document(self, document_id: str): ...
 

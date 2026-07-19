@@ -10,6 +10,8 @@ from app.core.response_factory import success
 from app.schemas.document.requests.upload_document_request import (
     UploadDocumentRequest,
 )
+from app.schemas.document.responses.upload_document_response import UploadDocumentResponse
+from app.schemas.document.entities.document import DocumentStatus
 
 router = APIRouter(
     prefix="/documents",
@@ -33,7 +35,7 @@ def get_documents(
 
 @router.post(
     "",
-    response_model=ApiResponse[DocumentResponse],
+    response_model=ApiResponse[UploadDocumentResponse],
 )
 async def upload_document(
     file: UploadFile,
@@ -45,5 +47,7 @@ async def upload_document(
     request = UploadDocumentRequest(file=file)
 
     document = await service.upload_document(request)
+    document.document.status=DocumentStatus.COMPLETED
+    document.document.processing_progress=100
 
     return success(data=document)
