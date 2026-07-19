@@ -1,5 +1,5 @@
 import type { Document } from "../types/document";
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import * as documentService from "../services/documentService";
 import { delay } from "../services/documentService";
 
@@ -23,6 +23,9 @@ export function DocumentProvider({
 }: DocumentProviderProps) {
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(false);
+    useEffect(() => {
+        refreshDocuments();
+    }, []);
     function updateDocument(
         id: string,
         updates: Partial<Document>
@@ -40,22 +43,31 @@ export function DocumentProvider({
 
         try {
             // Upload the file (currently mocked)
-            const document = await documentService.uploadDocument(file);
+            const result = await documentService.uploadDocument(file);
 
             // Add it to the UI immediately
-            setDocuments(prev => [...prev, document]);
+            setDocuments((prev) => {
+                const exists = prev.some(
+                    (d) => d.id === result.document.id
+                );
 
+                if (exists) {
+                    return prev;
+                }
+
+                return [result.document, ...prev];
+            });
             // Simulate upload progress
-            await simulateUploadProgress(document.id);
+            await simulateUploadProgress(result.document.id);
 
             // Backend starts processing
-            updateDocument(document.id, {
+            updateDocument(result.document.id, {
                 status: "processing",
                 progress: 100,
             });
 
             // Simulate embedding/chunking work
-            await simulateProcessing(document.id);
+            await simulateProcessing(result.document.id);
 
         } catch (error) {
             console.error("Upload failed", error);
@@ -63,15 +75,30 @@ export function DocumentProvider({
             setLoading(false);
         }
     }
-    async function deleteDocument(id: string) {
-        setDocuments(prev =>
-            prev.filter(doc => doc.id !== id)
-        );
-    }
+    const deleteDocument = async (id: string) => { // Keep previous state in case API fails 
+        const previousDocuments = documents;
+        //Optimistic UI update 
+        setDocuments((prev) => prev.filter((d) => d.id !== id));
+        try {
+            const deleted = await documentService.deleteDocument(id);
+            if (!deleted) { // Restore state if backend says nothing was deleted 
+                setDocuments(previousDocuments);
+                throw new Error("Document not found");
+            }
+        }
+        catch (error) { // Rollback on failure 
+            setDocuments(previousDocuments);
+            console.error(error);
+            throw error;
+        }
+    };
     async function refreshDocuments() {
-        // Later:
-        // const docs = await documentService.getDocuments();
-        // setDocuments(docs);
+        try {
+            const documents = await documentService.getDocuments();
+            setDocuments(documents);
+        } catch (error) {
+            console.error(error);
+        }
     }
     async function simulateUploadProgress(
         documentId: string

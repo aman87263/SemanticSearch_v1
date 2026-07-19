@@ -37,7 +37,7 @@ export default function StatusChip({
     return (
         <Chip
             label={label}
-            color={config.color}
+            color={config?.color}
             size="small"
         />
     );

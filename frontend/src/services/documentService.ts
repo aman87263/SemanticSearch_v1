@@ -1,18 +1,29 @@
 import type { Document } from "../types/document";
+import { uploadDocuments, getDocuments as getDocumentsFromApi, deleteDocument as deleteDocumentFromApi } from "./document/documentApi";
 
+export type UploadOutcome = "created" | "duplicate";
+
+export interface UploadDocumentResponse {
+    outcome: UploadOutcome;
+    document: Document;
+}
+
+
+
+export async function getDocuments(): Promise<Document[]> {
+    return getDocumentsFromApi();
+}
+
+export async function uploadDocument(
+    file: File
+): Promise<UploadDocumentResponse> {
+    return uploadDocuments(file);
+}
+
+export async function deleteDocument(
+    documentId: string
+): Promise<boolean> {
+    return deleteDocumentFromApi(documentId);
+}
 
 export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-export async function uploadDocument(file: File): Promise<Document> {
-
-    await delay(1000);
-
-    return {
-        id: crypto.randomUUID(),
-        name: file.name,
-        size: file.size,
-        uploadedAt: new Date(),
-        status: "uploading",
-        progress: 0,
-    };
-}

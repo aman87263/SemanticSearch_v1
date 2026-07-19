@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, UploadFile
 
@@ -10,7 +11,9 @@ from app.core.response_factory import success
 from app.schemas.document.requests.upload_document_request import (
     UploadDocumentRequest,
 )
-from app.schemas.document.responses.upload_document_response import UploadDocumentResponse
+from app.schemas.document.responses.upload_document_response import (
+    UploadDocumentResponse,
+)
 from app.schemas.document.entities.document import DocumentStatus
 
 router = APIRouter(
@@ -20,7 +23,7 @@ router = APIRouter(
 
 
 @router.get(
-    "/",
+    "",
     response_model=ApiResponse[list[DocumentResponse]],
 )
 def get_documents(
@@ -47,7 +50,26 @@ async def upload_document(
     request = UploadDocumentRequest(file=file)
 
     document = await service.upload_document(request)
-    document.document.status=DocumentStatus.COMPLETED
-    document.document.processing_progress=100
+    document.document.status = DocumentStatus.COMPLETED
+    document.document.processing_progress = 100
 
     return success(data=document)
+
+
+@router.delete(
+    "/{document_id}",
+    response_model=ApiResponse[bool],
+)
+async def delete_document(
+    document_id: UUID,
+    service: Annotated[
+        DocumentService,
+        Depends(get_document_service),
+    ],
+):
+    deleted = await service.delete_document(document_id)
+
+    return ApiResponse[bool](
+        success=deleted,
+        data=deleted,
+    )

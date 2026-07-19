@@ -39,7 +39,7 @@ export default function DocumentRow({
             </TableCell>
 
             <TableCell>
-                {document.uploadedAt.toLocaleTimeString()}
+                {document.uploadedAt ? new Date(document.uploadedAt).toLocaleTimeString() : 'Loading...'}
             </TableCell>
 
             <TableCell align="center">

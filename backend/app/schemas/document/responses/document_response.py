@@ -9,9 +9,9 @@ from app.schemas.document.entities.document import DocumentStatus
 
 class DocumentResponse(BaseModel):
     id: UUID
-    file_name: str
+    name: str
     size: int
     status: DocumentStatus
-    upload_progress: int
+    progress: int
     processing_progress: int
-    uploaded_at: datetime
+    uploadedAt: datetime

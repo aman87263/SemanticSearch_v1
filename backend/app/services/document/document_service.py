@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from app.db.repositories.memory_document_repository import MemoryDocumentRepository
 from app.db.repositories.interfaces.document_repository import IDocumentRepository
@@ -12,7 +12,9 @@ from app.schemas.document.responses.document_response import DocumentResponse
 from app.schemas.document.entities.document import Document, DocumentStatus
 from datetime import datetime
 
-from app.schemas.document.responses.upload_document_response import UploadDocumentResponse
+from app.schemas.document.responses.upload_document_response import (
+    UploadDocumentResponse,
+)
 from app.schemas.document.upload_outcome import UploadOutcome
 
 
@@ -36,7 +38,9 @@ class DocumentService:
         documents = self._repository.get_all()
         return [DocumentMapper.to_response(doc) for doc in documents]
 
-    async def upload_document(self, request: UploadDocumentRequest) -> UploadDocumentResponse:
+    async def upload_document(
+        self, request: UploadDocumentRequest
+    ) -> UploadDocumentResponse:
 
         file = request.file
 
@@ -84,7 +88,20 @@ class DocumentService:
             document=DocumentMapper.to_response(document),
         )
 
-    def delete_document(self, document_id: str): ...
+    async def delete_document(
+        self,
+        document_id: UUID,
+    ) -> bool:
 
-    def get_document(self, document_id: str):
-        return DocumentMapper.to_response(self._repository.get_by_id(document_id))
+        document = self._repository.get_by_id(document_id)
+
+        if not document:
+            return False
+
+        # TODO: delete physical file from storage provider
+        # await self._storage_service.delete(document.storage_key)
+
+        return self._repository.delete(document_id)
+
+    async def get_document(self, document_id: UUID):
+        return DocumentMapper.to_response(await self._repository.get_by_id(document_id))
