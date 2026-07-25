@@ -15,6 +15,9 @@ from app.services.document.document_storage_service import DocumentStorageServic
 from app.services.document.duplicate_detection_service import DuplicateDetectionService
 from app.services.document.file_hash_service import FileHashService
 from app.services.document.file_validation_service import FileValidationService
+from app.services.document.document_processing_pipeline import DocumentProcessingPipeline
+from app.services.document.extraction.text_extractor_factory import TextExtractorFactory
+from app.dependencies.processing import get_document_processing_pipeline
 
 # -------------------------------------------------------------------------
 # Repository
@@ -45,6 +48,10 @@ def get_document_service(
         IDocumentRepository,
         Depends(get_document_repository),
     ],
+    processing_pipeline: Annotated[
+        DocumentProcessingPipeline,
+        Depends(get_document_processing_pipeline),
+    ],
 ) -> DocumentService:
     """
     Returns a DocumentService with its dependencies injected.
@@ -59,4 +66,5 @@ def get_document_service(
         hash_service=FileHashService(),
         duplicate_service=DuplicateDetectionService(repository),
         storage_service=storage_service,
+        processing_pipeline=processing_pipeline,
     )

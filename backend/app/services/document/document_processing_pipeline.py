@@ -2,6 +2,8 @@ from app.schemas.document.entities.document import Document, DocumentStatus
 from app.services.document.extraction.text_extractor_factory import (
     TextExtractorFactory,
 )
+from app.core.settings import settings
+from pathlib import Path
 
 
 class DocumentProcessingPipeline:
@@ -39,7 +41,7 @@ class DocumentProcessingPipeline:
 
         extractor = self._extractor_factory.get_extractor(extension)
 
-        extracted_text = extractor.extract(document.storage_key)
+        extracted_text = extractor.extract(Path(settings.storage.upload_directory) / document.storage_key)
 
         # Temporary output until chunking is implemented.
         print("=" * 80)
