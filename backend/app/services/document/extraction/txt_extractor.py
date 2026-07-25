@@ -1,4 +1,4 @@
-from backend.app.services.document.extraction.interfaces.i_text_extractor import ITextExtractor
+from app.services.document.extraction.interfaces.i_text_extractor import ITextExtractor
 
 
 class TxtExtractor(ITextExtractor):

@@ -3,9 +3,13 @@ from pathlib import Path
 from fastapi import UploadFile
 
 from app.core.settings import settings
+from app.services.document.extraction.text_extractor_factory import TextExtractorFactory
 
 
 class FileValidationService:
+
+    def __init__(self, text_extractor_factory: TextExtractorFactory = TextExtractorFactory()):
+        self.text_extractor_factory = text_extractor_factory
 
     def validate(self, file: UploadFile) -> None:
         """
@@ -23,8 +27,10 @@ class FileValidationService:
 
         extension = Path(file.filename).suffix.lower().lstrip(".")
 
-        if extension not in settings.document.upload.allowed_extensions:
-            raise ValueError(f"File type '{extension}' is not supported.")
+        try:
+            self.text_extractor_factory.get_extractor(extension)
+        except ValueError as e:
+            raise ValueError(f"File type '{extension}' is not supported. Original error: {e}")
 
         file.file.seek(0, 2)
         size_bytes = file.file.tell()
