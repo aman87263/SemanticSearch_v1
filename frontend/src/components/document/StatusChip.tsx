@@ -15,8 +15,8 @@ const statusConfig = {
         label: "Processing",
         color: "info",
     },
-    ready: {
-        label: "Ready",
+    completed: {
+        label: "Completed",
         color: "success",
     },
     failed: {

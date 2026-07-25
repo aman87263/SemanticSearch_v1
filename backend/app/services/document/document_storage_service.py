@@ -30,3 +30,6 @@ class DocumentStorageService:
             stream,
             storage_key,
         )
+
+    async def delete(self, storage_key: str) -> bool:
+        return await self._storage_provider.delete(storage_key)

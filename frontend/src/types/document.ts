@@ -1,7 +1,7 @@
 export type DocumentStatus =
     | "uploading"
     | "processing"
-    | "ready"
+    | "completed"
     | "failed";
 
 export interface Document {

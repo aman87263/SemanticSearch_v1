@@ -14,8 +14,6 @@ from app.schemas.document.requests.upload_document_request import (
 from app.schemas.document.responses.upload_document_response import (
     UploadDocumentResponse,
 )
-from app.schemas.document.entities.document import DocumentStatus
-
 router = APIRouter(
     prefix="/documents",
     tags=["Documents"],
@@ -50,8 +48,6 @@ async def upload_document(
     request = UploadDocumentRequest(file=file)
 
     document = await service.upload_document(request)
-    document.document.status = DocumentStatus.COMPLETED
-    document.document.processing_progress = 100
 
     return success(data=document)
 

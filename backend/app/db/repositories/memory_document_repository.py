@@ -1,6 +1,7 @@
+from uuid import UUID
+
 from app.schemas.document.entities.document import Document
 from app.db.repositories.interfaces.document_repository import IDocumentRepository
-# from backend.app.schemas import document
 
 
 class MemoryDocumentRepository(IDocumentRepository):
@@ -11,7 +12,7 @@ class MemoryDocumentRepository(IDocumentRepository):
     def get_all(self):
         return self._documents
 
-    def get_by_id(self, document_id: str):
+    def get_by_id(self, document_id: UUID):
         return next(
             (document for document in self._documents if document.id == document_id),
             None,
@@ -30,10 +31,13 @@ class MemoryDocumentRepository(IDocumentRepository):
     def add(self, document):
         self._documents.append(document)
 
-    def update(self, document):
-        pass  # In a real implementation, you would update the document in the database.
+    def update(self, document: Document):
+        for index, existing in enumerate(self._documents):
+            if existing.id == document.id:
+                self._documents[index] = document
+                return
 
-    def delete(self, document_id: str):
+    def delete(self, document_id: UUID):
         document = self.get_by_id(document_id)
 
         if document is None:

@@ -36,3 +36,12 @@ class LocalStorageProvider(IStorageProvider):
             size=destination.stat().st_size,
             provider="local",
         )
+
+    async def delete(self, storage_key: str) -> bool:
+        file_path = Path(settings.storage.upload_directory) / storage_key
+
+        if not file_path.exists():
+            return False
+
+        file_path.unlink()
+        return True

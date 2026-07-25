@@ -1,5 +1,9 @@
 import type { Document } from "../types/document";
-import { uploadDocuments, getDocuments as getDocumentsFromApi, deleteDocument as deleteDocumentFromApi } from "./document/documentApi";
+import {
+    uploadDocuments,
+    getDocuments as getDocumentsFromApi,
+    deleteDocument as deleteDocumentFromApi,
+} from "./document/documentApi";
 
 export type UploadOutcome = "created" | "duplicate";
 
@@ -7,8 +11,6 @@ export interface UploadDocumentResponse {
     outcome: UploadOutcome;
     document: Document;
 }
-
-
 
 export async function getDocuments(): Promise<Document[]> {
     return getDocumentsFromApi();
@@ -25,5 +27,3 @@ export async function deleteDocument(
 ): Promise<boolean> {
     return deleteDocumentFromApi(documentId);
 }
-
-export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

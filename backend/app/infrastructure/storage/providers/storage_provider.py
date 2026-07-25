@@ -16,3 +16,10 @@ class IStorageProvider(ABC):
         Uploads a file stream to the configured storage.
         """
         pass
+
+    @abstractmethod
+    async def delete(self, storage_key: str) -> bool:
+        """
+        Deletes a file from storage by its key.
+        """
+        pass

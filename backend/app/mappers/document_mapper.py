@@ -14,4 +14,5 @@ class DocumentMapper:
             progress=document.upload_progress,
             processing_progress=document.processing_progress,
             uploadedAt=document.uploaded_at,
+            chunkCount=document.chunk_count,
         )

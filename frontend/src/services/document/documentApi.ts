@@ -3,29 +3,46 @@ import type { ApiResponse } from "../../types/api";
 import type { Document } from "../../types/document";
 
 export type UploadOutcome = "created" | "duplicate";
-const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL;
 
 export interface UploadDocumentResponse {
     outcome: UploadOutcome;
     document: Document;
 }
 
+interface DocumentApiResponse {
+    id: string;
+    name: string;
+    size: number;
+    status: Document["status"];
+    progress: number;
+    processing_progress: number;
+    uploadedAt: string;
+    chunkCount?: number | null;
+}
+
+interface UploadDocumentApiResponse {
+    outcome: UploadOutcome;
+    document: DocumentApiResponse;
+}
+
+function mapDocument(document: DocumentApiResponse): Document {
+    return {
+        id: document.id,
+        name: document.name,
+        size: document.size,
+        status: document.status,
+        progress: document.progress,
+        uploadedAt: new Date(document.uploadedAt),
+        chunkCount: document.chunkCount ?? undefined,
+    };
+}
+
 export async function getDocuments(): Promise<Document[]> {
-    const response = await fetch(
-        `${API_BASE_URL}/documents`
+    const response = await apiRequest<ApiResponse<DocumentApiResponse[]>>(
+        "/documents"
     );
 
-    if (!response.ok) {
-        throw new Error(
-            `Failed to load documents: ${response.status}`
-        );
-    }
-
-    const data =
-        (await response.json()) as ApiResponse<Document[]>;
-
-    return data.data;
+    return response.data?.map(mapDocument) ?? [];
 }
 
 export async function uploadDocuments(
@@ -34,43 +51,33 @@ export async function uploadDocuments(
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch(
-        `${API_BASE_URL}/documents`,
+    const response = await apiRequest<ApiResponse<UploadDocumentApiResponse>>(
+        "/documents",
         {
             method: "POST",
             body: formData,
         }
     );
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-            `Upload failed: ${response.status} ${errorText}`
-        );
+    if (!response.data) {
+        throw new Error("Upload response did not include document data.");
     }
-    const data =
-        (await response.json()) as ApiResponse<UploadDocumentResponse>;
 
-    return data.data;
+    return {
+        outcome: response.data.outcome,
+        document: mapDocument(response.data.document),
+    };
 }
+
 export async function deleteDocument(
     documentId: string
 ): Promise<boolean> {
-    const response = await fetch(
-        `${API_BASE_URL}/documents/${documentId}`,
+    const response = await apiRequest<ApiResponse<boolean>>(
+        `/documents/${documentId}`,
         {
             method: "DELETE",
         }
     );
 
-    if (!response.ok) {
-        throw new Error(
-            `Delete failed: ${response.status}`
-        );
-    }
-
-    const data =
-        (await response.json()) as ApiResponse<boolean>;
-
-    return data.data;
+    return response.data ?? false;
 }

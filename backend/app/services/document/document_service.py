@@ -73,7 +73,7 @@ class DocumentService:
             file_hash=file_hash,
             storage_key=storage_result.storage_key,
             uploaded_at=datetime.utcnow(),
-            status=DocumentStatus.UPLOADING,
+            status=DocumentStatus.COMPLETED,
             upload_progress=100,
             processing_progress=0,
             chunk_count=None,
@@ -98,10 +98,12 @@ class DocumentService:
         if not document:
             return False
 
-        # TODO: delete physical file from storage provider
-        # await self._storage_service.delete(document.storage_key)
+        await self._storage_service.delete(document.storage_key)
 
         return self._repository.delete(document_id)
 
-    async def get_document(self, document_id: UUID):
-        return DocumentMapper.to_response(await self._repository.get_by_id(document_id))
+    def get_document(self, document_id: UUID):
+        document = self._repository.get_by_id(document_id)
+        if document is None:
+            return None
+        return DocumentMapper.to_response(document)

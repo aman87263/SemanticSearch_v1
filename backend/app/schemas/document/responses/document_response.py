@@ -15,3 +15,4 @@ class DocumentResponse(BaseModel):
     progress: int
     processing_progress: int
     uploadedAt: datetime
+    chunkCount: int | None = None

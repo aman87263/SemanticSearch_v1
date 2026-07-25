@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from app.schemas.document.entities.document import Document
 
@@ -10,7 +11,7 @@ class IDocumentRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_id(self, document_id: str) -> Document | None:
+    def get_by_id(self, document_id: UUID) -> Document | None:
         pass
 
     @abstractmethod
@@ -26,5 +27,5 @@ class IDocumentRepository(ABC):
         pass
 
     @abstractmethod
-    def delete(self, document_id: str) -> bool:
+    def delete(self, document_id: UUID) -> bool:
         pass

@@ -8,9 +8,24 @@ import {
 } from "@mui/material";
 
 import { useDocuments } from "../../hooks/useDocuments";
-export const SUPPORTED_FILE_TYPES = [
-    "application/pdf",
-];
+
+export const SUPPORTED_EXTENSIONS = [".pdf", ".docx", ".txt", ".md"];
+
+const EXTENSION_LABELS = "PDF, DOCX, TXT, or MD";
+
+function getFileExtension(fileName: string): string {
+    const dotIndex = fileName.lastIndexOf(".");
+
+    if (dotIndex === -1) {
+        return "";
+    }
+
+    return fileName.slice(dotIndex).toLowerCase();
+}
+
+function isSupportedFile(file: File): boolean {
+    return SUPPORTED_EXTENSIONS.includes(getFileExtension(file.name));
+}
 
 export default function UploadZone() {
     const { uploadDocument } = useDocuments();
@@ -25,9 +40,11 @@ export default function UploadZone() {
 
         setIsDragging(true);
     }
+
     function handleDragLeave() {
         setIsDragging(false);
     }
+
     async function handleDrop(
         event: React.DragEvent<HTMLDivElement>
     ) {
@@ -38,13 +55,14 @@ export default function UploadZone() {
         const file = event.dataTransfer.files[0];
         await uploadSelectedFile(file);
     }
+
     async function uploadSelectedFile(file?: File) {
         if (!file) {
             return;
         }
 
-        if (file.type !== "application/pdf") {
-            alert("Only PDF files are supported.");
+        if (!isSupportedFile(file)) {
+            alert(`Only ${EXTENSION_LABELS} files are supported.`);
             return;
         }
 
@@ -56,10 +74,8 @@ export default function UploadZone() {
     ) {
         const file = event.target.files?.[0];
 
-
         await uploadSelectedFile(file);
 
-        // Allow selecting the same file again
         event.target.value = "";
     }
 
@@ -89,7 +105,7 @@ export default function UploadZone() {
             <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf"
+                accept={SUPPORTED_EXTENSIONS.join(",")}
                 hidden
                 onChange={handleFileSelect}
             />
@@ -111,17 +127,17 @@ export default function UploadZone() {
                 color="text.secondary"
                 sx={{ mb: 3 }}
             >
-                Click anywhere or drag & drop a PDF here.
+                Click anywhere or drag and drop {EXTENSION_LABELS} files here.
             </Typography>
 
             <Button
                 variant="contained"
-                onClick={(e) => {
-                    e.stopPropagation();
+                onClick={(event) => {
+                    event.stopPropagation();
                     fileInputRef.current?.click();
                 }}
             >
-                Choose PDF
+                Choose File
             </Button>
         </Paper>
     );
