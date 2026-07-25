@@ -16,6 +16,9 @@ from app.schemas.document.responses.upload_document_response import (
     UploadDocumentResponse,
 )
 from app.schemas.document.upload_outcome import UploadOutcome
+from app.services.document.document_processing_pipeline import (
+    DocumentProcessingPipeline,
+)
 
 
 class DocumentService:
@@ -27,12 +30,14 @@ class DocumentService:
         hash_service: FileHashService,
         duplicate_service: DuplicateDetectionService,
         storage_service: DocumentStorageService,
+        processing_pipeline: DocumentProcessingPipeline,
     ):
         self._repository = repository
         self._validation_service = validation_service
         self._hash_service = hash_service
         self._duplicate_service = duplicate_service
         self._storage_service = storage_service
+        self._processing_pipeline = processing_pipeline
 
     def get_documents(self):
         documents = self._repository.get_all()
@@ -73,7 +78,7 @@ class DocumentService:
             file_hash=file_hash,
             storage_key=storage_result.storage_key,
             uploaded_at=datetime.utcnow(),
-            status=DocumentStatus.COMPLETED,
+            status=DocumentStatus.UPLOADING,
             upload_progress=100,
             processing_progress=0,
             chunk_count=None,
@@ -81,6 +86,8 @@ class DocumentService:
 
         # 6. Persist
         self._repository.add(document)
+
+        await self._processing_pipeline.process(document)
 
         # 7. Return DTO
         return UploadDocumentResponse(
