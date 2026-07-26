@@ -1,1 +1,2 @@
-provider: sentence-transformers
+provider: sentence_transformer
+model_name: sentence-transformers/all-MiniLM-L6-v2

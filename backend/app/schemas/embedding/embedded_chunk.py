@@ -1,18 +1,13 @@
-from uuid import UUID
 from typing import Any
+from uuid import UUID
+
 from pydantic import BaseModel, Field
 
 
-class Chunk(BaseModel):
-
-    id: UUID
-
+class EmbeddedChunk(BaseModel):
+    chunk_id: UUID
     document_id: UUID
-
     index: int
-
     text: str
-
-    token_count: int
-
+    vector: list[float]
     metadata: dict[str, Any] = Field(default_factory=dict)

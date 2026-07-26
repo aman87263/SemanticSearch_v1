@@ -6,6 +6,7 @@ from app.core.settings import settings
 from pathlib import Path
 
 from app.services.chunking.chunking_service import ChunkingService
+from app.services.embedding.embedding_service import EmbeddingService
 
 
 class DocumentProcessingPipeline:
@@ -24,9 +25,12 @@ class DocumentProcessingPipeline:
         self,
         extractor_factory: TextExtractorFactory,
         chunking_service: ChunkingService,
+        embedding_service: EmbeddingService,
     ):
         self._extractor_factory = extractor_factory
         self._chunking_service = chunking_service
+        self._embedding_service = embedding_service
+
     async def process(
         self,
         document: Document,
@@ -54,6 +58,6 @@ class DocumentProcessingPipeline:
 
         # TODO:
         chunks = self._chunking_service.chunk(document.id, extracted_text)
-        # embeddings = await self._embedding_service.generate(chunks)
+        embedded_chunks = await self._embedding_service.generate(chunks)
         # await self._vector_store.store(document.id, embeddings)
         # await self._document_repository.mark_completed(document.id)

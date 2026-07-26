@@ -11,7 +11,10 @@ from app.services.chunking.chunking_service import ChunkingService
 def get_chunking_strategy() -> IChunkingStrategy:
 
     if settings.chunking.strategy == "recursive":
-        return RecursiveChunkingStrategy()
+        return RecursiveChunkingStrategy(
+            chunk_size=settings.chunking.chunk_size,
+            chunk_overlap=settings.chunking.chunk_overlap,
+        )
 
     raise ValueError(f"Unsupported chunking strategy: {settings.chunking.strategy}")
 

@@ -19,6 +19,10 @@ class ChunkingSettings(BaseModel):
     strategy: str
     chunk_size: int
     chunk_overlap: int
+
+class EmbeddingSettings(BaseModel):
+    provider: str
+    model_name: str
     
 class DocumentSettings(BaseModel):
     upload: UploadSettings
@@ -34,6 +38,7 @@ class Settings(BaseModel):
     document: DocumentSettings
     storage: StorageSettings
     chunking: ChunkingSettings
+    embedding: EmbeddingSettings
 
 
 @lru_cache
@@ -43,6 +48,7 @@ def get_settings() -> Settings:
     doc_cfg = loader.load_yaml("document.yaml") or {}
     storage_cfg = loader.load_yaml("storage.yaml") or {}
     chunk_cfg = loader.load_yaml("chunking.yaml") or {}
+    embedding_cfg = loader.load_yaml("embedding.yaml") or {}
 
     # chunking.yaml uses a nested top-level key `chunking: {...}` in base files
     if "chunking" in chunk_cfg:
@@ -53,6 +59,7 @@ def get_settings() -> Settings:
         document=DocumentSettings(**doc_cfg),
         storage=StorageSettings(**storage_cfg),
         chunking=ChunkingSettings(**chunk_cfg),
+        embedding=EmbeddingSettings(**embedding_cfg),
     )
 
 
