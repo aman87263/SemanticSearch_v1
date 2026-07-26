@@ -15,11 +15,14 @@ class UploadSettings(BaseModel):
 class DuplicateSettings(BaseModel):
     allow_duplicates: bool
 
-
+class ChunkingSettings(BaseModel):
+    strategy: str
+    chunk_size: int
+    chunk_overlap: int
+    
 class DocumentSettings(BaseModel):
     upload: UploadSettings
     duplicate: DuplicateSettings
-
 
 class StorageSettings(BaseModel):
     provider: str
@@ -30,25 +33,26 @@ class Settings(BaseModel):
     environment: str
     document: DocumentSettings
     storage: StorageSettings
+    chunking: ChunkingSettings
 
 
 @lru_cache
 def get_settings() -> Settings:
-
     loader = ConfigurationLoader()
+
+    doc_cfg = loader.load_yaml("document.yaml") or {}
+    storage_cfg = loader.load_yaml("storage.yaml") or {}
+    chunk_cfg = loader.load_yaml("chunking.yaml") or {}
+
+    # chunking.yaml uses a nested top-level key `chunking: {...}` in base files
+    if "chunking" in chunk_cfg:
+        chunk_cfg = chunk_cfg["chunking"]
 
     return Settings(
         environment=loader._environment,
-        document=DocumentSettings(
-            **loader.load_yaml(
-                "document.yaml"
-            )
-        ),
-        storage=StorageSettings(
-            **loader.load_yaml(
-                "storage.yaml"
-            )
-        ),
+        document=DocumentSettings(**doc_cfg),
+        storage=StorageSettings(**storage_cfg),
+        chunking=ChunkingSettings(**chunk_cfg),
     )
 
 

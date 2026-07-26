@@ -5,6 +5,8 @@ from app.services.document.extraction.text_extractor_factory import (
 from app.core.settings import settings
 from pathlib import Path
 
+from app.services.chunking.chunking_service import ChunkingService
+
 
 class DocumentProcessingPipeline:
     """
@@ -21,9 +23,10 @@ class DocumentProcessingPipeline:
     def __init__(
         self,
         extractor_factory: TextExtractorFactory,
+        chunking_service: ChunkingService,
     ):
         self._extractor_factory = extractor_factory
-
+        self._chunking_service = chunking_service
     async def process(
         self,
         document: Document,
@@ -50,7 +53,7 @@ class DocumentProcessingPipeline:
         print("=" * 80)
 
         # TODO:
-        # chunks = self._chunking_service.chunk(extracted_text)
+        chunks = self._chunking_service.chunk(document.id, extracted_text)
         # embeddings = await self._embedding_service.generate(chunks)
         # await self._vector_store.store(document.id, embeddings)
         # await self._document_repository.mark_completed(document.id)
