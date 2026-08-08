@@ -28,6 +28,7 @@ class EmbeddingService:
                 text=chunk.text,
                 vector=vector,
                 metadata=chunk.metadata,
+                token_count=chunk.token_count,
             )
             for chunk, vector in zip(chunks, vectors, strict=True)
         ]

@@ -32,10 +32,15 @@ class StorageSettings(BaseModel):
     provider: str
     upload_directory: str
 
+class VectorStoreSettings(BaseModel):
+    provider: str
+    database_url: str
+
 
 class Settings(BaseModel):
     environment: str
     document: DocumentSettings
+    vector_store: VectorStoreSettings
     storage: StorageSettings
     chunking: ChunkingSettings
     embedding: EmbeddingSettings
@@ -49,6 +54,7 @@ def get_settings() -> Settings:
     storage_cfg = loader.load_yaml("storage.yaml") or {}
     chunk_cfg = loader.load_yaml("chunking.yaml") or {}
     embedding_cfg = loader.load_yaml("embedding.yaml") or {}
+    vector_store_cfg = loader.load_yaml("vector_store.yaml") or {}
 
     # chunking.yaml uses a nested top-level key `chunking: {...}` in base files
     if "chunking" in chunk_cfg:
@@ -60,6 +66,7 @@ def get_settings() -> Settings:
         storage=StorageSettings(**storage_cfg),
         chunking=ChunkingSettings(**chunk_cfg),
         embedding=EmbeddingSettings(**embedding_cfg),
+        vector_store=VectorStoreSettings(**vector_store_cfg),
     )
 
 

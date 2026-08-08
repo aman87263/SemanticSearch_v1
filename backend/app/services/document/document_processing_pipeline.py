@@ -7,6 +7,7 @@ from pathlib import Path
 
 from app.services.chunking.chunking_service import ChunkingService
 from app.services.embedding.embedding_service import EmbeddingService
+from app.services.vectorstore.vector_store_service import VectorStoreService
 
 
 class DocumentProcessingPipeline:
@@ -26,15 +27,17 @@ class DocumentProcessingPipeline:
         extractor_factory: TextExtractorFactory,
         chunking_service: ChunkingService,
         embedding_service: EmbeddingService,
+        vector_store_service: VectorStoreService
     ):
         self._extractor_factory = extractor_factory
         self._chunking_service = chunking_service
         self._embedding_service = embedding_service
+        self._vector_store_service = vector_store_service
 
     async def process(
         self,
         document: Document,
-    ) -> None:
+    ) -> int:
         """
         Process a document after it has been uploaded.
 
@@ -59,5 +62,7 @@ class DocumentProcessingPipeline:
         # TODO:
         chunks = self._chunking_service.chunk(document.id, extracted_text)
         embedded_chunks = await self._embedding_service.generate(chunks)
+        await self._vector_store_service.store_chunks(embedded_chunks)
+        return len(embedded_chunks)
         # await self._vector_store.store(document.id, embeddings)
         # await self._document_repository.mark_completed(document.id)

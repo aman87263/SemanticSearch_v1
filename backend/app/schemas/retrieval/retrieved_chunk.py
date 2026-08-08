@@ -4,11 +4,11 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
-class EmbeddedChunk(BaseModel):
-    chunk_id: UUID
+class RetrievedChunk(BaseModel):
+    id: UUID
     document_id: UUID
     index: int
     text: str
-    vector: list[float]
     token_count: int
     metadata: dict[str, Any] = Field(default_factory=dict)
+    similarity: float

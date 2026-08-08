@@ -19,6 +19,7 @@ from app.schemas.document.upload_outcome import UploadOutcome
 from app.services.document.document_processing_pipeline import (
     DocumentProcessingPipeline,
 )
+from app.dependencies import document
 
 
 class DocumentService:
@@ -87,7 +88,12 @@ class DocumentService:
         # 6. Persist
         self._repository.add(document)
 
-        await self._processing_pipeline.process(document)
+        embedded_chunks_count = await self._processing_pipeline.process(document)
+
+        document.chunk_count = embedded_chunks_count
+        document.processing_progress = 100
+        document.status = DocumentStatus.COMPLETED
+        self._repository.update(document)
 
         # 7. Return DTO
         return UploadDocumentResponse(
