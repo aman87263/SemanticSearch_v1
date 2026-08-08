@@ -32,3 +32,16 @@ class EmbeddingService:
             )
             for chunk, vector in zip(chunks, vectors, strict=True)
         ]
+
+    async def generate_query(self, query: str) -> list[float]:
+        if not query or not query.strip():
+            raise ValueError("Query cannot be empty.")
+
+        vectors = await self._provider.embed([query])
+
+        if len(vectors) != 1:
+            raise RuntimeError(
+                "Embedding provider returned an unexpected number of vectors."
+            )
+
+        return vectors[0]
