@@ -36,11 +36,16 @@ class VectorStoreSettings(BaseModel):
     provider: str
     database_url: str
 
+class RetrievalSettings(BaseModel):
+    default_limit: int
+    candidate_limit: int
+    similarity_threshold: float
 
 class Settings(BaseModel):
     environment: str
     document: DocumentSettings
     vector_store: VectorStoreSettings
+    retrieval: RetrievalSettings
     storage: StorageSettings
     chunking: ChunkingSettings
     embedding: EmbeddingSettings
@@ -55,10 +60,15 @@ def get_settings() -> Settings:
     chunk_cfg = loader.load_yaml("chunking.yaml") or {}
     embedding_cfg = loader.load_yaml("embedding.yaml") or {}
     vector_store_cfg = loader.load_yaml("vector_store.yaml") or {}
+    retrieval_cfg = loader.load_yaml("retrieval.yaml") or {}
 
     # chunking.yaml uses a nested top-level key `chunking: {...}` in base files
     if "chunking" in chunk_cfg:
         chunk_cfg = chunk_cfg["chunking"]
+
+    # retrieval.yaml uses a nested top-level key `retrieval: {...}` in base files
+    if "retrieval" in retrieval_cfg:
+        retrieval_cfg = retrieval_cfg["retrieval"]
 
     return Settings(
         environment=loader._environment,
@@ -67,6 +77,7 @@ def get_settings() -> Settings:
         chunking=ChunkingSettings(**chunk_cfg),
         embedding=EmbeddingSettings(**embedding_cfg),
         vector_store=VectorStoreSettings(**vector_store_cfg),
+        retrieval=RetrievalSettings(**retrieval_cfg),
     )
 
 
