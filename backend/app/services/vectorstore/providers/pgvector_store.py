@@ -2,7 +2,7 @@ import asyncio
 import json
 
 import psycopg
-
+from uuid import UUID
 from app.schemas.embedding.embedded_chunk import EmbeddedChunk
 from app.schemas.retrieval.retrieved_chunk import RetrievedChunk
 from app.services.vectorstore.i_vector_store import IVectorStore
@@ -73,17 +73,20 @@ class PgVectorStore(IVectorStore):
         self,
         query_vector: list[float],
         limit: int = 5,
+        document_id: UUID | None = None,
     ) -> list[RetrievedChunk]:
         return await asyncio.to_thread(
             self._search_sync,
             query_vector,
             limit,
+            document_id,
         )
 
     def _search_sync(
         self,
         query_vector: list[float],
         limit: int,
+        document_id: UUID | None = None,
     ) -> list[RetrievedChunk]:
         query = """
             SELECT
@@ -95,6 +98,10 @@ class PgVectorStore(IVectorStore):
                 metadata,
                 1 - (embedding <=> %(query_vector)s::vector) AS similarity
             FROM document_chunks
+           WHERE (
+            %(document_id)s::uuid IS NULL
+            OR document_id = %(document_id)s::uuid
+            )
             ORDER BY embedding <=> %(query_vector)s::vector
             LIMIT %(limit)s;
         """
@@ -102,6 +109,7 @@ class PgVectorStore(IVectorStore):
         params = {
             "query_vector": self._vector_to_string(query_vector),
             "limit": limit,
+            "document_id": document_id,
         }
 
         with psycopg.connect(self._database_url) as connection:

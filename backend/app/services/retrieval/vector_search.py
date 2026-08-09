@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from app.schemas.retrieval.retrieved_chunk import RetrievedChunk
 from app.services.embedding.embedding_service import EmbeddingService
 from app.services.vectorstore.vector_store_service import VectorStoreService
@@ -17,6 +19,7 @@ class VectorSearch:
         self,
         query: str,
         limit: int = 5,
+        document_id: UUID | None = None,
     ) -> list[RetrievedChunk]:
 
         if not query or not query.strip():
@@ -27,4 +30,5 @@ class VectorSearch:
         return await self._vector_store_service.search(
             query_vector=query_vector,
             limit=limit,
+            document_id=document_id,
         )

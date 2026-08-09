@@ -1,6 +1,7 @@
 from app.schemas.retrieval.retrieved_chunk import RetrievedChunk
 from app.services.retrieval.vector_search import VectorSearch
 from app.core.settings import settings
+from uuid import UUID
 
 
 class RetrievalService:
@@ -15,6 +16,7 @@ class RetrievalService:
         self,
         query: str,
         limit: int | None = None,
+        document_id: UUID | None = None,
     ) -> list[RetrievedChunk]:
 
         if not query or not query.strip():
@@ -25,6 +27,7 @@ class RetrievalService:
         candidates = await self._vector_search.search(
             query=query,
             limit=settings.retrieval.candidate_limit,
+            document_id=document_id,
         )
 
         results = [

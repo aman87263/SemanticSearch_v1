@@ -28,6 +28,7 @@ async def search(
     results = await retrieval_service.retrieve(
         query=request.query,
         limit=request.limit,
+        document_id=request.document_id,
     )
 
     return SearchResponse(

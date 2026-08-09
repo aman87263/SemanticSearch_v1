@@ -4,8 +4,8 @@ from fastapi import Depends
 from app.db.repositories.interfaces.document_repository import (
     IDocumentRepository,
 )
-from app.db.repositories.memory_document_repository import (
-    MemoryDocumentRepository,
+from app.db.repositories.postgres_document_repository import (
+    PostgresDocumentRepository,
 )
 from app.services.document.document_service import DocumentService
 from app.infrastructure.storage.providers.local_storage_provider import (
@@ -15,16 +15,19 @@ from app.services.document.document_storage_service import DocumentStorageServic
 from app.services.document.duplicate_detection_service import DuplicateDetectionService
 from app.services.document.file_hash_service import FileHashService
 from app.services.document.file_validation_service import FileValidationService
-from app.services.document.document_processing_pipeline import DocumentProcessingPipeline
+from app.services.document.document_processing_pipeline import (
+    DocumentProcessingPipeline,
+)
 from app.services.document.extraction.text_extractor_factory import TextExtractorFactory
 from app.dependencies.processing import get_document_processing_pipeline
+from app.core.settings import settings
 
 # -------------------------------------------------------------------------
 # Repository
 # -------------------------------------------------------------------------
 
 # Singleton instance (temporary until PostgreSQL is introduced)
-_document_repository = MemoryDocumentRepository()
+# _document_repository = MemoryDocumentRepository()
 
 
 def get_document_repository() -> IDocumentRepository:
@@ -35,7 +38,7 @@ def get_document_repository() -> IDocumentRepository:
     Later this can be replaced with PostgreSQL, MongoDB,
     CosmosDB, etc. without changing the service layer.
     """
-    return _document_repository
+    return PostgresDocumentRepository(database_url=settings.vector_store.database_url)
 
 
 # -------------------------------------------------------------------------

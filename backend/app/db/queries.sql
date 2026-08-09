@@ -43,3 +43,24 @@ FROM document_chunks AS chunks
 CROSS JOIN query
 ORDER BY chunks.embedding <=> query.embedding
 LIMIT 5;
+
+
+
+CREATE TABLE documents (
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
+    size BIGINT NOT NULL,
+    file_hash TEXT NOT NULL,
+    storage_key TEXT NOT NULL,
+    uploaded_at TIMESTAMPTZ NOT NULL,
+    status TEXT NOT NULL,
+    progress INTEGER NOT NULL DEFAULT 0,
+    chunk_count INTEGER,
+    CONSTRAINT uq_documents_file_hash UNIQUE (file_hash)
+);
+
+ALTER TABLE document_chunks
+ADD CONSTRAINT fk_document_chunks_document
+FOREIGN KEY (document_id)
+REFERENCES documents(id)
+ON DELETE CASCADE;

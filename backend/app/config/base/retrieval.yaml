@@ -1,4 +1,4 @@
 retrieval:
   default_limit: 3
   candidate_limit: 20
-  similarity_threshold: 0.25
+  similarity_threshold: 0.45
