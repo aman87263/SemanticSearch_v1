@@ -54,10 +54,10 @@ class DocumentProcessingPipeline:
         extracted_text = extractor.extract(Path(settings.storage.upload_directory) / document.storage_key)
 
         # Temporary output until chunking is implemented.
-        print("=" * 80)
-        print(f"Extracted {len(extracted_text)} characters")
-        print(extracted_text[:1000])
-        print("=" * 80)
+        # print("=" * 80)
+        # print(f"Extracted {len(extracted_text)} characters")
+        # print(extracted_text[:1000])
+        # print("=" * 80)
 
         # TODO:
         chunks = self._chunking_service.chunk(document.id, extracted_text)
