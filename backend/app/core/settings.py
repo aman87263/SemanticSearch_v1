@@ -41,6 +41,13 @@ class RetrievalSettings(BaseModel):
     candidate_limit: int
     similarity_threshold: float
 
+class RerankingSettings(BaseModel):
+    enabled: bool = True
+    provider: str
+    model_name: str
+    top_k: int | None = None
+
+
 class Settings(BaseModel):
     environment: str
     document: DocumentSettings
@@ -49,6 +56,7 @@ class Settings(BaseModel):
     storage: StorageSettings
     chunking: ChunkingSettings
     embedding: EmbeddingSettings
+    reranking: RerankingSettings
 
 
 @lru_cache
@@ -61,6 +69,7 @@ def get_settings() -> Settings:
     embedding_cfg = loader.load_yaml("embedding.yaml") or {}
     vector_store_cfg = loader.load_yaml("vector_store.yaml") or {}
     retrieval_cfg = loader.load_yaml("retrieval.yaml") or {}
+    reranking_cfg = loader.load_yaml("reranking.yaml") or {}
 
     # chunking.yaml uses a nested top-level key `chunking: {...}` in base files
     if "chunking" in chunk_cfg:
@@ -69,6 +78,8 @@ def get_settings() -> Settings:
     # retrieval.yaml uses a nested top-level key `retrieval: {...}` in base files
     if "retrieval" in retrieval_cfg:
         retrieval_cfg = retrieval_cfg["retrieval"]
+    if "reranking" in reranking_cfg:
+        reranking_cfg = reranking_cfg["reranking"]
 
     return Settings(
         environment=loader._environment,
@@ -78,6 +89,7 @@ def get_settings() -> Settings:
         embedding=EmbeddingSettings(**embedding_cfg),
         vector_store=VectorStoreSettings(**vector_store_cfg),
         retrieval=RetrievalSettings(**retrieval_cfg),
+        reranking=RerankingSettings(**reranking_cfg)
     )
 
 

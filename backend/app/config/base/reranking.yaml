@@ -1,0 +1,8 @@
+# Cross-encoder reranking runs after vector retrieval + adjacent dedupe.
+# candidate_limit (retrieval.yaml) should be > top_k so the reranker has enough input.
+reranking:
+  enabled: true
+  provider: sentence_transformer
+  model_name: cross-encoder/ms-marco-MiniLM-L-6-v2
+  # Max chunks kept after reranking; API limit is applied after this.
+  top_k: 5

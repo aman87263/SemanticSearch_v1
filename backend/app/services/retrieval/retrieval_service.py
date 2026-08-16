@@ -1,7 +1,12 @@
-from app.schemas.retrieval.retrieved_chunk import RetrievedChunk
-from app.services.retrieval.vector_search import VectorSearch
-from app.core.settings import settings
+import logging
 from uuid import UUID
+
+from app.core.settings import settings
+from app.schemas.retrieval.retrieved_chunk import RetrievedChunk
+from app.services.reranking.reranker_service import RerankerService
+from app.services.retrieval.vector_search import VectorSearch
+
+logger = logging.getLogger(__name__)
 
 
 class RetrievalService:
@@ -9,8 +14,10 @@ class RetrievalService:
     def __init__(
         self,
         vector_search: VectorSearch,
+        reranker_service: RerankerService | None = None,
     ):
         self._vector_search = vector_search
+        self._reranker_service = reranker_service
 
     async def retrieve(
         self,
@@ -36,7 +43,24 @@ class RetrievalService:
             if chunk.similarity >= settings.retrieval.similarity_threshold
         ]
 
+        # Dedupe by vector similarity before rerank (cheaper; may drop
+        # neighbors that would have ranked higher on the cross-encoder).
         results = self._deduplicate_adjacent(results)
+
+        if self._reranker_service:
+            try:
+                results = await self._reranker_service.rerank(
+                    query=query,
+                    chunks=results,
+                )
+            except Exception:
+                logger.exception(
+                    "Reranking failed; returning unre-ranked retrieval results"
+                )
+
+            top_k = settings.reranking.top_k
+            if top_k is not None:
+                results = results[:top_k]
 
         return results[:final_limit]
 

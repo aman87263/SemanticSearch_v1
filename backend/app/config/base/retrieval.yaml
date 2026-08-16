@@ -1,4 +1,7 @@
+# default_limit: API default result count (request limit overrides).
+# candidate_limit: vector-search pool size fed into threshold/dedupe/rerank.
+# similarity_threshold: minimum cosine similarity to keep a candidate.
 retrieval:
   default_limit: 3
   candidate_limit: 20
-  similarity_threshold: 0.40
+  similarity_threshold: 0.0

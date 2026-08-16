@@ -12,3 +12,4 @@ class RetrievedChunk(BaseModel):
     token_count: int
     metadata: dict[str, Any] = Field(default_factory=dict)
     similarity: float
+    rerank_score: float | None = None
