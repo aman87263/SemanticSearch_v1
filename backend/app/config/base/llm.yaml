@@ -1,1 +1,5 @@
-provider: ollama
+llm:
+  provider: ollama
+  model: llama3.1:8b
+  temperature: 0.2
+  max_tokens: 1000
