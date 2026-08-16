@@ -1,5 +1,5 @@
 llm:
   provider: ollama
-  model: llama3.1:8b
+  model: qwen2.5:1.5b
   temperature: 0.2
   max_tokens: 1000

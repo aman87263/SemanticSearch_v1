@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 from urllib import error, request
 
 from app.services.llm.interfaces.i_llm_provider import ILLMProvider
@@ -9,12 +10,12 @@ class OllamaProvider(ILLMProvider):
     def __init__(
         self,
         model: str,
-        base_url: str = "http://localhost:11434",
+        base_url: str | None = None,
         temperature: float = 0.2,
         max_tokens: int = 1000,
     ):
         self._model = model
-        self._base_url = base_url.rstrip("/")
+        self._base_url = (base_url or os.getenv("OLLAMA_BASE_URL") or "http://localhost:11434").rstrip("/")
         self._temperature = temperature
         self._max_tokens = max_tokens
 
@@ -44,11 +45,15 @@ class OllamaProvider(ILLMProvider):
         )
 
         try:
-            with request.urlopen(req, timeout=60) as response:
+            with request.urlopen(req, timeout=180) as response:
                 body = json.loads(response.read().decode("utf-8"))
+        except error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Ollama HTTP {exc.code}: {detail}") from exc
         except error.URLError as exc:
             raise RuntimeError(
-                f"Unable to reach Ollama at {self._base_url}: {exc}"
+                f"Ollama is not reachable at {self._base_url}. "
+                "Start it with 'ollama serve' or set OLLAMA_BASE_URL."
             ) from exc
 
         if not isinstance(body, dict):
