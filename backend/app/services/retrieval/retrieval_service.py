@@ -36,4 +36,41 @@ class RetrievalService:
             if chunk.similarity >= settings.retrieval.similarity_threshold
         ]
 
+        results = self._deduplicate_adjacent(results)
+
         return results[:final_limit]
+
+    def _deduplicate_adjacent(
+        self,
+        chunks: list[RetrievedChunk],
+    ) -> list[RetrievedChunk]:
+        # Higher-scoring chunks get priority.
+        sorted_chunks = sorted(
+            chunks,
+            key=lambda chunk: chunk.similarity,
+            reverse=True,
+        )
+
+        selected: list[RetrievedChunk] = []
+        seen_indices: dict[UUID, set[int]] = {}
+
+        for chunk in sorted_chunks:
+            doc_seen = seen_indices.setdefault(
+                chunk.document_id,
+                set(),
+            )
+
+            if any(
+                index in doc_seen
+                for index in (
+                    chunk.index - 1,
+                    chunk.index,
+                    chunk.index + 1,
+                )
+            ):
+                continue
+
+            selected.append(chunk)
+            doc_seen.add(chunk.index)
+
+        return selected
