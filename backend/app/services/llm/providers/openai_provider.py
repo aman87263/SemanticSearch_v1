@@ -1,7 +1,7 @@
 import asyncio
 import json
 import os
-from urllib import request
+from urllib import error, request
 
 from app.services.llm.interfaces.i_llm_provider import ILLMProvider
 
@@ -51,13 +51,26 @@ class OpenAIProvider(ILLMProvider):
             data=json.dumps(payload).encode("utf-8"),
             headers={
                 "Content-Type": "application/json",
+                "Accept": "application/json",
                 "Authorization": f"Bearer {self._api_key}",
+                "User-Agent": "SemanticSearch/1.0",
             },
             method="POST",
         )
 
-        with request.urlopen(req, timeout=60) as response:
-            body = json.loads(response.read().decode("utf-8"))
+        try:
+            with request.urlopen(req, timeout=60) as response:
+                body = json.loads(response.read().decode("utf-8"))
+        except error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(
+                f"{self._provider_label} request failed with HTTP "
+                f"{exc.code}: {detail}"
+            ) from exc
+        except error.URLError as exc:
+            raise RuntimeError(
+                f"{self._provider_label} is unreachable: {exc.reason}"
+            ) from exc
 
         choices = body.get("choices") or []
         if not choices:
