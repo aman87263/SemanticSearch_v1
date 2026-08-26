@@ -1,17 +1,7 @@
-import type { Document } from "../types/document";
-import { createContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import * as documentService from "../services/documentService";
-
-export interface DocumentContextType {
-    documents: Document[];
-    loading: boolean;
-
-    uploadDocument(file: File): Promise<void>;
-    deleteDocument(id: string): Promise<void>;
-    refreshDocuments(): Promise<void>;
-}
-
-export const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
+import type { Document } from "../types/document";
+import { DocumentContext } from "./DocumentContextValue";
 
 interface DocumentProviderProps {
     children: React.ReactNode;

@@ -8,10 +8,10 @@ import {
 } from "@mui/material";
 
 import { useDocuments } from "../../hooks/useDocuments";
-
-export const SUPPORTED_EXTENSIONS = [".pdf", ".docx", ".txt", ".md"];
-
-const EXTENSION_LABELS = "PDF, DOCX, TXT, or MD";
+import {
+    EXTENSION_LABELS,
+    SUPPORTED_EXTENSIONS,
+} from "./uploadConstants";
 
 function getFileExtension(fileName: string): string {
     const dotIndex = fileName.lastIndexOf(".");

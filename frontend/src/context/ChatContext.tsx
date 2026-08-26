@@ -1,19 +1,11 @@
 import {
-    createContext,
     useState,
     type ReactNode
 } from "react";
 
 import { sendMessage as sendMessageToAI } from "../services/chatService";
 import type { Message } from "../types/chat";
-
-interface ChatContextType {
-    messages: Message[];
-    loading: boolean;
-    sendMessage: (text: string) => Promise<void>;
-}
-
-export const ChatContext = createContext<ChatContextType | undefined>(undefined);
+import { ChatContext } from "./ChatContextValue";
 
 interface ChatProviderProps {
     children: ReactNode;
