@@ -1,4 +1,5 @@
 from functools import lru_cache
+import os
 
 from pydantic import BaseModel
 
@@ -90,6 +91,16 @@ def get_settings() -> Settings:
         reranking_cfg = reranking_cfg["reranking"]
     if "llm" in llm_cfg:
         llm_cfg = llm_cfg["llm"]
+
+    vector_store_cfg["database_url"] = os.getenv(
+        "DATABASE_URL",
+        vector_store_cfg.get("database_url"),
+    )
+    storage_cfg["upload_directory"] = os.getenv(
+        "UPLOAD_DIRECTORY",
+        storage_cfg.get("upload_directory"),
+    )
+    llm_cfg["model"] = os.getenv("OLLAMA_MODEL", llm_cfg.get("model"))
 
     return Settings(
         environment=loader._environment,

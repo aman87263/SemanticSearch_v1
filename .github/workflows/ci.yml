@@ -69,3 +69,50 @@ jobs:
 
       - name: Verify FastAPI application imports
         run: python -c "from app.main import app; print(app.title)"
+
+  containers-and-postgres:
+    name: Containers and PostgreSQL
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-password
+          POSTGRES_DB: semanticsearch
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d semanticsearch"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=12
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install integration test dependencies
+        run: python -m pip install --upgrade pip psycopg pytest
+
+      - name: Initialize PostgreSQL schema
+        env:
+          PGPASSWORD: ci-password
+        run: psql -h localhost -U postgres -d semanticsearch -f docker/postgres/init/001_schema.sql
+
+      - name: Run PostgreSQL integration test
+        env:
+          DATABASE_URL: postgresql://postgres:ci-password@localhost:5432/semanticsearch
+        run: pytest -q backend/tests/test_postgres_integration.py
+
+      - name: Build backend image
+        run: docker build -t semanticsearch-backend:ci ./backend
+
+      - name: Build frontend image
+        run: docker build --build-arg VITE_API_BASE_URL=http://localhost:8000/api -t semanticsearch-frontend:ci ./frontend
