@@ -100,8 +100,6 @@ def get_settings() -> Settings:
         "UPLOAD_DIRECTORY",
         storage_cfg.get("upload_directory"),
     )
-    llm_cfg["model"] = os.getenv("OLLAMA_MODEL", llm_cfg.get("model"))
-
     return Settings(
         environment=loader._environment,
         document=DocumentSettings(**doc_cfg),

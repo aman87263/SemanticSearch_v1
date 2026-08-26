@@ -30,7 +30,7 @@ services:
     command: >-
       "ollama serve &
       until ollama list >/dev/null 2>&1; do sleep 2; done;
-      ollama pull ${OLLAMA_MODEL};
+      ollama pull qwen2.5:1.5b;
       wait"
     healthcheck:
       test: ["CMD", "ollama", "list"]
@@ -47,15 +47,13 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       UPLOAD_DIRECTORY: ${UPLOAD_DIRECTORY}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
-      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
     ports:
       - "${BACKEND_PORT}:8000"
     volumes:
       - backend_uploads:/app/uploads
     depends_on:
       postgres:
-        condition: service_healthy
-      ollama:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]

@@ -25,4 +25,14 @@ class LLMFactory:
                 max_tokens=max_tokens,
             )
 
+        if provider_name == "groq":
+            return OpenAIProvider(
+                model=model_name,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                base_url="https://api.groq.com/openai/v1",
+                api_key_environment_variable="GROQ_API_KEY",
+                provider_label="Groq",
+            )
+
         raise ValueError(f"Unsupported LLM provider: {provider_name}")

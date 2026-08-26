@@ -1,0 +1,13 @@
+services:
+  ollama:
+    profiles: ["local"]
+
+  backend:
+    environment:
+      APP_ENVIRONMENT: production
+      GROQ_API_KEY: ${GROQ_API_KEY:?Set GROQ_API_KEY for production}
+
+  frontend:
+    depends_on:
+      backend:
+        condition: service_healthy
