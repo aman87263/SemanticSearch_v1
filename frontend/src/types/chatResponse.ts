@@ -1,6 +1,1 @@
-import type { MessageSource } from "./chat";
-
-export interface ChatResponse {
-    content: string;
-    sources?: MessageSource[];
-}
+export type { ChatResponse } from "./chat";

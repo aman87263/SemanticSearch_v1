@@ -32,7 +32,7 @@ export default function ChatPage() {
                     </Box>
                 )}
 
-                <ChatInput onSend={sendMessage} />
+                <ChatInput onSend={sendMessage} disabled={loading} />
             </Box>
         </Box>
     );

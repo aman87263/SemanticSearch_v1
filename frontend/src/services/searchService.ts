@@ -1,11 +1,11 @@
 import { apiRequest } from "./http/httpClient";
-import type { ChatResponse } from "../types/chat";
+import type { SearchResponse } from "../types/search";
 
-export async function sendMessage(
+export async function searchDocuments(
     query: string,
     documentId?: string,
-): Promise<ChatResponse> {
-    return apiRequest<ChatResponse>("/chat", {
+): Promise<SearchResponse> {
+    return apiRequest<SearchResponse>("/search", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

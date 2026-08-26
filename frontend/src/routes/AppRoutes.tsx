@@ -4,6 +4,7 @@ import ChatPage from "../pages/Chat/ChatPage";
 import DocumentsPage from "../pages/Documents/DocumentsPage";
 import SettingsPage from "../pages/Settings/SettingsPage";
 import LoginPage from "../pages/Login/LoginPage";
+import SearchPage from "../pages/Search/SearchPage";
 
 export default function AppRoutes() {
     return (
@@ -12,6 +13,7 @@ export default function AppRoutes() {
 
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/settings" element={<SettingsPage />} />
 
             <Route path="/login" element={<LoginPage />} />

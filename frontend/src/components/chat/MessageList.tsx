@@ -19,9 +19,9 @@ export default function MessageList({ messages }: { messages: Message[] }) {
                 gap: 2,
             }}
         >
-            {messages.map((message, index) => (
+            {messages.map((message) => (
                 <MessageBubble
-                    key={index}
+                    key={message.id}
                     message={message}
                 />
             ))}

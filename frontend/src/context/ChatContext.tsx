@@ -5,7 +5,7 @@ import {
 } from "react";
 
 import { sendMessage as sendMessageToAI } from "../services/chatService";
-import type { ChatResponse, Message } from "../types/chat";
+import type { Message } from "../types/chat";
 
 interface ChatContextType {
     messages: Message[];
@@ -33,21 +33,6 @@ export function ChatProvider({
 
     const [loading, setLoading] = useState(false);
 
-    function updateMessage(
-        id: string,
-        updates: Partial<Message>
-    ) {
-        setMessages(prev =>
-            prev.map(message =>
-                message.id === id
-                    ? { ...message, ...updates }
-                    : message
-            )
-        );
-    }
-    function delay(ms: number) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
     async function sendMessage(text: string) {
         const userMessage: Message = {
             id: crypto.randomUUID(),
@@ -63,38 +48,32 @@ export function ChatProvider({
         try {
 
 
-            const assistantId = crypto.randomUUID();
+            const response = await sendMessageToAI(text);
 
-            const assistantMessage: Message = {
-                id: assistantId,
-                role: "assistant",
-                content: "",
-                createdAt: new Date(),
-            };
             setMessages(prev => [
                 ...prev,
-                assistantMessage,
+                {
+                    id: crypto.randomUUID(),
+                    role: "assistant",
+                    content: response.answer,
+                    citations: response.citations,
+                    createdAt: new Date(),
+                },
             ]);
+        } catch (error) {
+            const message = error instanceof Error
+                ? error.message
+                : "Unable to get an answer from the server.";
 
-            const response: ChatResponse = await sendMessageToAI(text);
-            const fullText = response.content;
-            let currentText = "";
-
-            for (const char of fullText) {
-
-                currentText += char;
-
-                updateMessage(assistantId, {
-                    content: currentText,
-                });
-
-                await delay(20);
-            }
-
-            updateMessage(assistantId, {
-                content: currentText,
-                sources: response.sources,
-            });
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: crypto.randomUUID(),
+                    role: "assistant",
+                    content: `Unable to answer your question: ${message}`,
+                    createdAt: new Date(),
+                },
+            ]);
         } finally {
             setLoading(false);
         }

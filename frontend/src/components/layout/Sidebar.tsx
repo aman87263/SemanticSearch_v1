@@ -13,6 +13,7 @@ import ChatIcon from "@mui/icons-material/Chat";
 import DescriptionIcon from "@mui/icons-material/Description";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
+import SearchIcon from "@mui/icons-material/Search";
 
 import { NavLink } from "react-router-dom";
 
@@ -20,6 +21,7 @@ export default function Sidebar() {
     const menuItems = [
         { label: "Chat", icon: <ChatIcon />, path: "/chat" },
         { label: "Documents", icon: <DescriptionIcon />, path: "/documents" },
+        { label: "Search", icon: <SearchIcon />, path: "/search" },
         { label: "Settings", icon: <SettingsIcon />, path: "/settings" },
     ];
     return (
