@@ -13,12 +13,16 @@ class OpenAIProvider(ILLMProvider):
         temperature: float = 0.2,
         max_tokens: int = 1000,
         base_url: str = "https://api.openai.com/v1",
+        api_key_environment_variable: str = "OPENAI_API_KEY",
+        provider_label: str = "OpenAI",
     ):
         self._model = model
         self._temperature = temperature
         self._max_tokens = max_tokens
         self._base_url = base_url.rstrip("/")
-        self._api_key = os.getenv("OPENAI_API_KEY")
+        self._api_key_environment_variable = api_key_environment_variable
+        self._provider_label = provider_label
+        self._api_key = os.getenv(api_key_environment_variable)
 
     def _build_prompt(self, query: str, context: str) -> str:
         return (
@@ -29,7 +33,9 @@ class OpenAIProvider(ILLMProvider):
 
     def _generate_sync(self, query: str, context: str) -> str:
         if not self._api_key:
-            raise RuntimeError("OPENAI_API_KEY is not configured.")
+            raise RuntimeError(
+                f"{self._api_key_environment_variable} is not configured."
+            )
 
         payload = {
             "model": self._model,
@@ -55,7 +61,7 @@ class OpenAIProvider(ILLMProvider):
 
         choices = body.get("choices") or []
         if not choices:
-            raise RuntimeError("OpenAI returned no choices.")
+            raise RuntimeError(f"{self._provider_label} returned no choices.")
 
         message = choices[0].get("message", {}).get("content", "")
         return str(message).strip()
