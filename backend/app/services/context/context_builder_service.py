@@ -37,6 +37,7 @@ class ContextBuilderService:
                 text=chunk.text,
                 score=chunk.similarity,
                 rerank_score=chunk.rerank_score,
+                document_name=chunk.document_name,
             )
 
             section = (

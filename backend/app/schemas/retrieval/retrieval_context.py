@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class ContextItem(BaseModel):
     document_id: UUID
+    document_name: str | None = None
     chunk_id: UUID
     chunk_index: int
     text: str

@@ -8,6 +8,7 @@ from app.schemas.chat.chat_response import QuestionResponse
 from app.services.question_answering.question_answering_service import (
     QuestionAnsweringService,
 )
+from app.services.chat.citation_service import CitationService
 
 router = APIRouter(
     prefix="/chat",
@@ -34,5 +35,5 @@ async def chat(
 
     return QuestionResponse(
         answer=result.answer,
-        sources=result.context.items,
+        citations=CitationService().create(result.context.items),
     )

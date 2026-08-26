@@ -89,21 +89,24 @@ class PgVectorStore(IVectorStore):
         document_id: UUID | None = None,
     ) -> list[RetrievedChunk]:
         query = """
-            SELECT
-                id,
-                document_id,
-                chunk_index,
-                text,
-                token_count,
-                metadata,
-                1 - (embedding <=> %(query_vector)s::vector) AS similarity
-            FROM document_chunks
-           WHERE (
+        SELECT
+            chunks.id,
+            chunks.document_id,
+            documents.name AS document_name,
+            chunks.chunk_index,
+            chunks.text,
+            chunks.token_count,
+            chunks.metadata,
+            1 - (chunks.embedding <=> %(query_vector)s::vector) AS similarity
+        FROM document_chunks AS chunks
+        LEFT JOIN documents
+            ON documents.id = chunks.document_id
+        WHERE (
             %(document_id)s::uuid IS NULL
-            OR document_id = %(document_id)s::uuid
-            )
-            ORDER BY embedding <=> %(query_vector)s::vector
-            LIMIT %(limit)s;
+            OR chunks.document_id = %(document_id)s::uuid
+        )
+        ORDER BY chunks.embedding <=> %(query_vector)s::vector
+        LIMIT %(limit)s;
         """
 
         params = {
@@ -126,6 +129,7 @@ class PgVectorStore(IVectorStore):
                 token_count=row["token_count"],
                 metadata=row["metadata"],
                 similarity=float(row["similarity"]),
+                document_name=row["document_name"],
             )
             for row in rows
         ]

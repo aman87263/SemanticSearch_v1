@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 class RetrievedChunk(BaseModel):
     id: UUID
     document_id: UUID
+    document_name: str | None = None
     index: int
     text: str
     token_count: int
