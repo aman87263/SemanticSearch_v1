@@ -1,13 +1,36 @@
 services:
-  ollama:
-    profiles: ["local"]
 
   backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
     environment:
       APP_ENVIRONMENT: production
-      GROQ_API_KEY: ${GROQ_API_KEY:?Set GROQ_API_KEY for production}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL}
+      GROQ_API_KEY: ${GROQ_API_KEY:?Set GROQ_API_KEY}
+      UPLOAD_DIRECTORY: /tmp/uploads
+      CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS}
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend_uploads:/tmp/uploads
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
   frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:?Set VITE_API_BASE_URL}
+    restart: unless-stopped
+    ports:
+      - "80:80"
     depends_on:
       backend:
         condition: service_healthy
+
+volumes:
+  backend_uploads:
