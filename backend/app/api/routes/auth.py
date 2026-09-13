@@ -19,3 +19,18 @@ def me(user: Annotated[CurrentUser, Depends(get_current_user)]):
             "provider": user.identity_provider,
         }
     )
+
+
+@router.get("/keycloak/config", response_model=ApiResponse[dict])
+def keycloak_config():
+    return success(
+        data={
+            "provider": "keycloak",
+            "realm": "master",
+            "issuer": "http://localhost:9090/realms/master",
+            "authorization_endpoint": "http://localhost:9090/realms/master/protocol/openid-connect/auth",
+            "token_endpoint": "http://localhost:9090/realms/master/protocol/openid-connect/token",
+            "userinfo_endpoint": "http://localhost:9090/realms/master/protocol/openid-connect/userinfo",
+            "jwks_uri": "http://localhost:9090/realms/master/protocol/openid-connect/certs",
+        }
+    )

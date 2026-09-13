@@ -21,12 +21,14 @@ def get_current_user(
     request: Request,
     authorization: Annotated[str | None, Header(alias="Authorization")] = None,
 ) -> CurrentUser:
-    """Read a demo/test auth context from headers.
+    """Read a demo/test auth context from headers and keep a Keycloak-friendly seam.
 
     Phase 1 scaffold:
     - Authorization header carries a bearer token
     - X-User-Id carries the user identity
     - X-User-Role carries the user's role
+    - X-Identity-Provider can override the default provider label and maps cleanly
+      to an OIDC provider such as Keycloak.
 
     This intentionally remains database-free and route-agnostic so the
     authentication migration can be layered later without changing the
@@ -39,13 +41,19 @@ def get_current_user(
 
     # Accept any bearer-shaped token in the initial scaffold.
     token = authorization if authorization else request.headers.get("Authorization")
+    provider = request.headers.get("X-Identity-Provider") or "demo-header"
+
+    # If the runtime is deliberately sending a Keycloak device route or a
+    # configured provider label, use that instead of the demo default.
+    if request.headers.get("X-Identity-Provider"):
+        provider = request.headers.get("X-Identity-Provider")
 
     return CurrentUser(
         user_id=user_id,
         roles=roles,
         authenticated=bool(user_id and token),
         auth_header=token,
-        identity_provider="demo-header",
+        identity_provider=provider,
     )
 
 
