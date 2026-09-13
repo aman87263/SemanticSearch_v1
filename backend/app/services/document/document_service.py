@@ -9,7 +9,7 @@ from app.services.document.file_hash_service import FileHashService
 from app.services.document.file_validation_service import FileValidationService
 from app.schemas.document.requests.upload_document_request import UploadDocumentRequest
 from app.schemas.document.responses.document_response import DocumentResponse
-from app.schemas.document.entities.document import Document, DocumentStatus
+from app.schemas.document.entities.document import Document, DocumentStatus, DocumentVisibility
 from datetime import datetime
 
 from app.schemas.document.responses.upload_document_response import (
@@ -86,6 +86,9 @@ class DocumentService:
         )
 
         # 6. Persist
+        # Phase 1 ownership and visibility metadata default values.
+        document.owner_id = "system"
+        document.visibility = DocumentVisibility.PRIVATE
         self._repository.add(document)
 
         embedded_chunks_count = await self._processing_pipeline.process(document)

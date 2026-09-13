@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, UploadFile
 
+from app.dependencies.auth import CurrentUser, require_authenticated_user
 from app.dependencies.document import get_document_service
 from app.services.document.document_service import DocumentService
 from app.schemas.common.api_response import ApiResponse
@@ -25,6 +26,7 @@ router = APIRouter(
     response_model=ApiResponse[list[DocumentResponse]],
 )
 def get_documents(
+    _user: Annotated[CurrentUser, Depends(require_authenticated_user)],
     service: Annotated[  # This is where dependency injection happens, we are injecting the DocumentService into the route handler
         DocumentService,
         Depends(get_document_service),
@@ -40,6 +42,7 @@ def get_documents(
 )
 async def upload_document(
     file: UploadFile,
+    _user: Annotated[CurrentUser, Depends(require_authenticated_user)],
     service: Annotated[
         DocumentService,
         Depends(get_document_service),
@@ -58,6 +61,7 @@ async def upload_document(
 )
 async def delete_document(
     document_id: UUID,
+    _user: Annotated[CurrentUser, Depends(require_authenticated_user)],
     service: Annotated[
         DocumentService,
         Depends(get_document_service),

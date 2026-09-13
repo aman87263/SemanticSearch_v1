@@ -15,4 +15,6 @@ class DocumentMapper:
             processing_progress=document.processing_progress,
             uploadedAt=document.uploaded_at,
             chunkCount=document.chunk_count,
+            owner_id=document.owner_id,
+            visibility=document.visibility,
         )

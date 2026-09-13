@@ -14,6 +14,11 @@ class DocumentStatus(str, Enum):
     FAILED = "failed"
 
 
+class DocumentVisibility(str, Enum):
+    PRIVATE = "PRIVATE"
+    PUBLIC = "PUBLIC"
+
+
 class Document(BaseModel):
     id: UUID
 
@@ -22,6 +27,10 @@ class Document(BaseModel):
     size: int
     file_hash: str
     storage_key: str
+
+    # Ownership and visibility
+    owner_id: str | None = None
+    visibility: DocumentVisibility = DocumentVisibility.PRIVATE
 
     # Lifecycle
     uploaded_at: datetime

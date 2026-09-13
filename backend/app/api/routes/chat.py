@@ -2,6 +2,7 @@ from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends
 
+from app.dependencies.auth import CurrentUser, require_authenticated_user
 from app.dependencies.questionanswer import get_question_answer_service
 from app.schemas.chat.chat_request import QuestionRequest
 from app.schemas.chat.chat_response import QuestionResponse
@@ -22,6 +23,7 @@ router = APIRouter(
 )
 async def chat(
     request: QuestionRequest,
+    _user: Annotated[CurrentUser, Depends(require_authenticated_user)],
     question_answering_service: Annotated[
         QuestionAnsweringService,
         Depends(get_question_answer_service),

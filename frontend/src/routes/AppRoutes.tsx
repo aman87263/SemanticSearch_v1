@@ -6,6 +6,15 @@ import SettingsPage from "../pages/Settings/SettingsPage";
 import LoginPage from "../pages/Login/LoginPage";
 import SearchPage from "../pages/Search/SearchPage";
 
+function AdminUsersPlaceholder() {
+    return (
+        <div style={{ padding: 24 }}>
+            <h1>Admin Users</h1>
+            <p>This UI page is a placeholder until the admin users page is implemented.</p>
+        </div>
+    );
+}
+
 export default function AppRoutes() {
     return (
         <Routes>
@@ -15,6 +24,7 @@ export default function AppRoutes() {
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/admin/users" element={<AdminUsersPlaceholder />} />
 
             <Route path="/login" element={<LoginPage />} />
 

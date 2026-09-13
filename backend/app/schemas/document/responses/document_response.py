@@ -3,8 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from app.schemas.document.entities.document import DocumentStatus
-
+from app.schemas.document.entities.document import DocumentStatus, DocumentVisibility
 
 
 class DocumentResponse(BaseModel):
@@ -16,3 +15,5 @@ class DocumentResponse(BaseModel):
     processing_progress: int
     uploadedAt: datetime
     chunkCount: int | None = None
+    owner_id: str | None = None
+    visibility: DocumentVisibility = DocumentVisibility.PRIVATE
