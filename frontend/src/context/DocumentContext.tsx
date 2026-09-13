@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import * as documentService from "../services/documentService";
 import type { Document } from "../types/document";
 import { DocumentContext } from "./DocumentContextValue";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "./useAuth";
 
 interface DocumentProviderProps {
     children: React.ReactNode;
@@ -17,7 +17,6 @@ export function DocumentProvider({
 
     useEffect(() => {
         if (!isAuthenticated) {
-            setDocuments([]);
             return;
         }
 

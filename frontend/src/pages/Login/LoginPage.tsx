@@ -2,7 +2,7 @@ import { Box, Button, Typography, Paper, Alert } from "@mui/material";
 import { Navigate, useLocation } from "react-router-dom";
 
 import { redirectToKeycloakLogin } from "../../config/keycloak";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 export default function LoginPage() {
     const { isAuthenticated } = useAuth();

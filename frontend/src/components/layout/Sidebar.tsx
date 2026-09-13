@@ -20,7 +20,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { NavLink } from "react-router-dom";
 import { clearAuthSession, getStoredIdToken, notifyAuthChanged } from "../../auth/session";
 import { getKeycloakLogoutUrl, redirectToKeycloakLogin } from "../../config/keycloak";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 export default function Sidebar() {
     const { isAuthenticated } = useAuth();

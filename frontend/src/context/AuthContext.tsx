@@ -1,12 +1,7 @@
-import { createContext, useContext, useMemo, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 import { hasAuthToken } from "../auth/session";
-
-interface AuthContextValue {
-    isAuthenticated: boolean;
-}
-
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+import { AuthContext } from "./AuthContextValue";
 
 function subscribeAuthChanges(onStoreChange: () => void) {
     window.addEventListener("auth-changed", onStoreChange);
@@ -30,11 +25,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-    const ctx = useContext(AuthContext);
-    if (!ctx) {
-        throw new Error("useAuth must be used inside AuthProvider");
-    }
 
-    return ctx;
-}
