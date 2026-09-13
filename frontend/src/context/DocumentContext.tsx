@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import * as documentService from "../services/documentService";
 import type { Document } from "../types/document";
 import { DocumentContext } from "./DocumentContextValue";
+import { useAuth } from "./AuthContext";
 
 interface DocumentProviderProps {
     children: React.ReactNode;
@@ -10,12 +11,18 @@ interface DocumentProviderProps {
 export function DocumentProvider({
     children,
 }: DocumentProviderProps) {
+    const { isAuthenticated } = useAuth();
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        refreshDocuments();
-    }, []);
+        if (!isAuthenticated) {
+            setDocuments([]);
+            return;
+        }
+
+        void refreshDocuments();
+    }, [isAuthenticated]);
 
     async function uploadDocument(file: File): Promise<void> {
         setLoading(true);

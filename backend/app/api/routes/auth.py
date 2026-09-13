@@ -26,11 +26,11 @@ def keycloak_config():
     return success(
         data={
             "provider": "keycloak",
-            "realm": "master",
-            "issuer": "http://localhost:9090/realms/master",
-            "authorization_endpoint": "http://localhost:9090/realms/master/protocol/openid-connect/auth",
-            "token_endpoint": "http://localhost:9090/realms/master/protocol/openid-connect/token",
-            "userinfo_endpoint": "http://localhost:9090/realms/master/protocol/openid-connect/userinfo",
-            "jwks_uri": "http://localhost:9090/realms/master/protocol/openid-connect/certs",
+            "realm": "semanticsearch",
+            "issuer": "http://localhost:9090/realms/semanticsearch",
+            "authorization_endpoint": "http://localhost:9090/realms/semanticsearch/protocol/openid-connect/auth",
+            "token_endpoint": "http://localhost:9090/realms/semanticsearch/protocol/openid-connect/token",
+            "userinfo_endpoint": "http://localhost:9090/realms/semanticsearch/protocol/openid-connect/userinfo",
+            "jwks_uri": "http://localhost:9090/realms/semanticsearch/protocol/openid-connect/certs",
         }
     )
