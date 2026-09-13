@@ -4,10 +4,14 @@ from .health import router as health_router
 from .document import router as document_router
 from .search import router as search_router
 from .chat import router as chat_router
+from .auth import router as auth_router
+from .admin import router as admin_router
 
 router = APIRouter(prefix="/api", tags=["API"])
 
 router.include_router(health_router)
+router.include_router(auth_router)
+router.include_router(admin_router)
 router.include_router(document_router)
 router.include_router(search_router)
 router.include_router(chat_router)

@@ -17,40 +17,43 @@ services:
       timeout: 5s
       retries: 12
 
-  ollama:
-    image: ollama/ollama:latest
-    restart: unless-stopped
-    environment:
-      OLLAMA_HOST: 0.0.0.0:11434
-    ports:
-      - "${OLLAMA_PORT}:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    entrypoint: ["/bin/sh", "-c"]
-    command: >-
-      "ollama serve &
-      until ollama list >/dev/null 2>&1; do sleep 2; done;
-      ollama pull qwen2.5:1.5b;
-      wait"
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 10s
-      timeout: 10s
-      retries: 30
+  # Ollama service kept as a commented reference for local experiments.
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     OLLAMA_HOST: 0.0.0.0:11434
+  #   ports:
+  #     - "${OLLAMA_PORT}:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   entrypoint: ["/bin/sh", "-c"]
+  #   command: >-
+  #     "ollama serve &
+  #     until ollama list >/dev/null 2>&1; do sleep 2; done;
+  #     ollama pull qwen2.5:1.5b;
+  #     wait"
+  #   healthcheck:
+  #     test: ["CMD", "ollama", "list"]
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 30
 
   backend:
     build:
       context: ./backend
     restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
       DATABASE_URL: ${DATABASE_URL}
       UPLOAD_DIRECTORY: ${UPLOAD_DIRECTORY}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      # OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
     ports:
       - "${BACKEND_PORT}:8000"
     volumes:
+      - ./backend:/app
       - backend_uploads:/app/uploads
     depends_on:
       postgres:
@@ -61,19 +64,70 @@ services:
       timeout: 5s
       retries: 12
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2
+    restart: unless-stopped
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_HOSTNAME: localhost
+      KC_HTTP_PORT: 8080
+    volumes:
+      - ./docker/keycloak/realm-semanticsearch.json:/opt/keycloak/data/import/realm-semanticsearch.json:ro
+    ports:
+      - "9090:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  keycloak-init:
+    image: quay.io/keycloak/keycloak:26.2
+    restart: "no"
+    entrypoint: ["/bin/bash", "/scripts/configure-semanticsearch-client.sh"]
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-semanticsearch}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-semanticsearch-web}
+      KEYCLOAK_POST_LOGOUT_REDIRECT_URIS: ${KEYCLOAK_POST_LOGOUT_REDIRECT_URIS:-http://localhost:5173/login##http://localhost:8080/login##http://localhost:5173/*##http://localhost:8080/*}
+    volumes:
+      - ./docker/keycloak/configure-semanticsearch-client.sh:/scripts/configure-semanticsearch-client.sh:ro
+    depends_on:
+      keycloak:
+        condition: service_started
+
   frontend:
     build:
       context: ./frontend
+      target: dev
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL}
     restart: unless-stopped
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+      VITE_KEYCLOAK_URL: ${KEYCLOAK_URL:-http://localhost:9090}
+      VITE_KEYCLOAK_REALM: ${KEYCLOAK_REALM:-semanticsearch}
+      VITE_KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-semanticsearch-web}
+      VITE_KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI:-http://localhost:5173/login/callback}
+      VITE_KEYCLOAK_POST_LOGOUT_REDIRECT_URI: ${KEYCLOAK_POST_LOGOUT_REDIRECT_URI:-http://localhost:5173/login}
+      VITE_KEYCLOAK_SCOPE: ${KEYCLOAK_SCOPE:-openid profile email}
     ports:
-      - "${FRONTEND_PORT}:80"
+      - "${FRONTEND_PORT}:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       backend:
         condition: service_healthy
 
 volumes:
   postgres_data:
-  ollama_data:
+  # ollama_data:
   backend_uploads:

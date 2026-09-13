@@ -14,10 +14,26 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
+import LoginIcon from "@mui/icons-material/Login";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 import { NavLink } from "react-router-dom";
+import { clearAuthSession, getStoredIdToken, notifyAuthChanged } from "../../auth/session";
+import { getKeycloakLogoutUrl, redirectToKeycloakLogin } from "../../config/keycloak";
+import { useAuth } from "../../context/useAuth";
 
 export default function Sidebar() {
+    const { isAuthenticated } = useAuth();
+
+    const handleLogout = () => {
+        const idToken = getStoredIdToken();
+
+        clearAuthSession();
+        notifyAuthChanged();
+
+        window.location.assign(getKeycloakLogoutUrl(idToken));
+    };
+
     const menuItems = [
         { label: "Chat", icon: <ChatIcon />, path: "/chat" },
         { label: "Documents", icon: <DescriptionIcon />, path: "/documents" },
@@ -66,6 +82,29 @@ export default function Sidebar() {
                     </ListItemButton>
                 ))}
 
+                {!isAuthenticated && (
+                    <ListItemButton
+                        component="button"
+                        onClick={redirectToKeycloakLogin}
+                    >
+                        <ListItemIcon>
+                            <LoginIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Login" />
+                    </ListItemButton>
+                )}
+
+                {isAuthenticated && (
+                    <ListItemButton
+                        component="button"
+                        onClick={handleLogout}
+                    >
+                        <ListItemIcon>
+                            <LogoutIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Logout" />
+                    </ListItemButton>
+                )}
 
             </List>
 
