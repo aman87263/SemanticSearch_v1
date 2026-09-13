@@ -17,26 +17,27 @@ services:
       timeout: 5s
       retries: 12
 
-  ollama:
-    image: ollama/ollama:latest
-    restart: unless-stopped
-    environment:
-      OLLAMA_HOST: 0.0.0.0:11434
-    ports:
-      - "${OLLAMA_PORT}:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    entrypoint: ["/bin/sh", "-c"]
-    command: >-
-      "ollama serve &
-      until ollama list >/dev/null 2>&1; do sleep 2; done;
-      ollama pull qwen2.5:1.5b;
-      wait"
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 10s
-      timeout: 10s
-      retries: 30
+  # Ollama service kept as a commented reference for local experiments.
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     OLLAMA_HOST: 0.0.0.0:11434
+  #   ports:
+  #     - "${OLLAMA_PORT}:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   entrypoint: ["/bin/sh", "-c"]
+  #   command: >-
+  #     "ollama serve &
+  #     until ollama list >/dev/null 2>&1; do sleep 2; done;
+  #     ollama pull qwen2.5:1.5b;
+  #     wait"
+  #   healthcheck:
+  #     test: ["CMD", "ollama", "list"]
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 30
 
   backend:
     build:
@@ -46,7 +47,7 @@ services:
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
       DATABASE_URL: ${DATABASE_URL}
       UPLOAD_DIRECTORY: ${UPLOAD_DIRECTORY}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      # OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
     ports:
       - "${BACKEND_PORT}:8000"
@@ -75,5 +76,5 @@ services:
 
 volumes:
   postgres_data:
-  ollama_data:
+  # ollama_data:
   backend_uploads:
