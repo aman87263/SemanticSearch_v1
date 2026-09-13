@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Box, Typography, CircularProgress, Alert } from "@mui/material";
+import { Box, Typography, CircularProgress } from "@mui/material";
 
 import {
     clearOAuthState,
@@ -31,7 +31,6 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
 export default function LoginCallbackPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const [error, setError] = useState<string | null>(null);
     const didExchange = useRef(false);
 
     useEffect(() => {
@@ -39,7 +38,6 @@ export default function LoginCallbackPage() {
         const state = searchParams.get("state");
 
         if (!code) {
-            setError("Keycloak callback did not include the expected authorization code.");
             return;
         }
 
@@ -48,7 +46,7 @@ export default function LoginCallbackPage() {
         }
 
         if (!isOAuthStateValid(state)) {
-            setError("Login session state did not match. Please try signing in again.");
+            navigate("/login", { replace: true, state: { error: "Login session state did not match. Please try signing in again." } });
             return;
         }
 
@@ -117,7 +115,14 @@ export default function LoginCallbackPage() {
             } catch (caughtError) {
                 inflightAuthCode = null;
                 didExchange.current = false;
-                setError(caughtError instanceof Error ? caughtError.message : "Unable to complete the Keycloak login.");
+                navigate("/login", {
+                    replace: true,
+                    state: {
+                        error: caughtError instanceof Error
+                            ? caughtError.message
+                            : "Unable to complete the Keycloak login.",
+                    },
+                });
             }
         }
 
@@ -126,14 +131,8 @@ export default function LoginCallbackPage() {
 
     return (
         <Box sx={{ p: 4, display: "flex", flexDirection: "column", minHeight: "50vh", alignItems: "center", justifyContent: "center", gap: 2 }}>
-            {error ? (
-                <Alert severity="error">{error}</Alert>
-            ) : (
-                <>
-                    <CircularProgress />
-                    <Typography variant="h6">Completing Keycloak login…</Typography>
-                </>
-            )}
+            <CircularProgress />
+            <Typography variant="h6">Completing Keycloak login…</Typography>
         </Box>
     );
 }

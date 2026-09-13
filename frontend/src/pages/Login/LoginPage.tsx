@@ -1,4 +1,4 @@
-import { Box, Button, Typography, Paper } from "@mui/material";
+import { Box, Button, Typography, Paper, Alert } from "@mui/material";
 import { Navigate, useLocation } from "react-router-dom";
 
 import { redirectToKeycloakLogin } from "../../config/keycloak";
@@ -9,6 +9,8 @@ export default function LoginPage() {
     const location = useLocation();
     const redirectTo =
         (location.state as { from?: string } | null)?.from ?? "/documents";
+    const routeError =
+        (location.state as { error?: string } | null)?.error ?? null;
 
     if (isAuthenticated) {
         return <Navigate to={redirectTo} replace />;
@@ -21,6 +23,9 @@ export default function LoginPage() {
                 <Typography variant="body1" sx={{ mb: 3 }}>
                     Continue with the local Keycloak identity provider.
                 </Typography>
+                {routeError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>{routeError}</Alert>
+                )}
                 <Button
                     variant="contained"
                     size="large"
