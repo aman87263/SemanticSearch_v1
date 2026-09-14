@@ -6,27 +6,16 @@ import {
     clearOAuthState,
     isOAuthStateValid,
     notifyAuthChanged,
-    persistAuthSession,
+    setAccessToken,
 } from "../../auth/session";
 import { keycloakConfig } from "../../config/keycloak";
 
+const API_BASE_URL =
+    (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
+    "http://localhost:8000/api";
+
 /** Survives React Strict Mode remounts so we do not validate/consume state twice. */
 let inflightAuthCode: string | null = null;
-
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
-    try {
-        const payload = token.split(".")[1];
-        if (!payload) {
-            return null;
-        }
-
-        const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-        const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
-        return JSON.parse(atob(padded));
-    } catch {
-        return null;
-    }
-}
 
 export default function LoginCallbackPage() {
     const navigate = useNavigate();
@@ -57,61 +46,58 @@ export default function LoginCallbackPage() {
 
         async function exchangeCode() {
             try {
-                const body = new URLSearchParams({
-                    grant_type: "authorization_code",
-                    client_id: keycloakConfig.clientId,
-                    code: authCode,
-                    redirect_uri: keycloakConfig.redirectUri,
-                });
-
-                const response = await fetch(
-                    `${keycloakConfig.url}/realms/${keycloakConfig.realm}/protocol/openid-connect/token`,
+                // Exchange authorization code with backend (BFF pattern)
+                // Backend will exchange code with Keycloak, store refresh token server-side,
+                // set HttpOnly session cookie, and return access token for in-memory storage
+                const sessionResponse = await fetch(
+                    `${API_BASE_URL}/auth/session`,
                     {
                         method: "POST",
+                        credentials: "include",
                         headers: {
-                            "Content-Type": "application/x-www-form-urlencoded",
+                            "Content-Type": "application/json",
                         },
-                        body: body.toString(),
+                        body: JSON.stringify({
+                            code: authCode,
+                            code_verifier: "", // PKCE not yet implemented on frontend
+                            redirect_uri: keycloakConfig.redirectUri,
+                        }),
                     }
                 );
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Token exchange failed (${response.status}): ${errorText}`);
+                if (!sessionResponse.ok) {
+                    const errorText = await sessionResponse.text();
+                    throw new Error(
+                        `Session creation failed (${sessionResponse.status}): ${errorText}`
+                    );
                 }
 
-                const tokenSet = await response.json() as {
-                    access_token?: string;
-                    refresh_token?: string;
-                    id_token?: string;
+                const sessionPayload = await sessionResponse.json() as {
+                    success?: boolean;
+                    data?: {
+                        authenticated?: boolean;
+                        user_id?: string;
+                        roles?: string[];
+                        provider?: string;
+                        access_token?: string;
+                        expires_in?: number;
+                        session_id?: string;
+                    };
                 };
 
-                if (!tokenSet.access_token) {
-                    throw new Error("Access token was not returned by Keycloak.");
+                if (!sessionPayload.success || !sessionPayload.data?.authenticated) {
+                    throw new Error("Backend session creation did not return an authenticated session.");
                 }
 
-                const payload = decodeJwtPayload(tokenSet.access_token) ?? {};
-                const roles =
-                    (payload?.realm_access as { roles?: string[] } | undefined)?.roles ??
-                    ["USER"];
-                const userId =
-                    (payload?.sub as string | undefined) ||
-                    (payload?.preferred_username as string | undefined) ||
-                    "keycloak-user";
+                // Store access token in memory only (never in localStorage/sessionStorage)
+                const accessToken = sessionPayload.data.access_token ?? null;
+                setAccessToken(accessToken);
 
-                persistAuthSession({
-                    accessToken: tokenSet.access_token,
-                    refreshToken: tokenSet.refresh_token,
-                    idToken: tokenSet.id_token,
-                    userId,
-                    roles,
-                    provider: "keycloak",
-                });
-
+                // Notify auth state change
                 clearOAuthState();
                 notifyAuthChanged();
 
-                navigate("/documents", { replace: true });
+                navigate("/chat", { replace: true });
             } catch (caughtError) {
                 inflightAuthCode = null;
                 didExchange.current = false;

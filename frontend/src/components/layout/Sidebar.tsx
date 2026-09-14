@@ -18,20 +18,34 @@ import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 import { NavLink } from "react-router-dom";
-import { clearAuthSession, getStoredIdToken, notifyAuthChanged } from "../../auth/session";
+import { clearAuthSession, notifyAuthChanged } from "../../auth/session";
 import { getKeycloakLogoutUrl, redirectToKeycloakLogin } from "../../config/keycloak";
 import { useAuth } from "../../context/useAuth";
+
+const API_BASE_URL =
+    (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
+    "http://localhost:8000/api";
 
 export default function Sidebar() {
     const { isAuthenticated } = useAuth();
 
-    const handleLogout = () => {
-        const idToken = getStoredIdToken();
+    const handleLogout = async () => {
+        // First, call backend to invalidate server-side session and clear HttpOnly cookie
+        try {
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: "POST",
+                credentials: "include",
+            });
+        } catch {
+            // Ignore errors - we still want to clear local state and redirect to Keycloak
+        }
 
+        // Clear local in-memory auth state
         clearAuthSession();
         notifyAuthChanged();
 
-        window.location.assign(getKeycloakLogoutUrl(idToken));
+        // Redirect to Keycloak logout (no id_token_hint since we don't store id_token)
+        window.location.assign(getKeycloakLogoutUrl(null));
     };
 
     const menuItems = [

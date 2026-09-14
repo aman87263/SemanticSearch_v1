@@ -16,7 +16,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
-
+# todo remove postgres
   # Ollama service kept as a commented reference for local experiments.
   # ollama:
   #   image: ollama/ollama:latest
