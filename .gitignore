@@ -6,3 +6,4 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .vscode/launch.json
+.vscode/launch.json
