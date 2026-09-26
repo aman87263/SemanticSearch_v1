@@ -16,5 +16,7 @@ class DocumentMapper:
             uploadedAt=document.uploaded_at,
             chunkCount=document.chunk_count,
             owner_id=document.owner_id,
+            uploader_email=document.uploader_email,
+            uploader_name=document.uploader_name,
             visibility=document.visibility,
         )

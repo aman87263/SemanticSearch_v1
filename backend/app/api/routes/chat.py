@@ -23,16 +23,19 @@ router = APIRouter(
 )
 async def chat(
     request: QuestionRequest,
-    _user: Annotated[CurrentUser, Depends(require_authenticated_user)],
+    user: Annotated[CurrentUser, Depends(require_authenticated_user)],
     question_answering_service: Annotated[
         QuestionAnsweringService,
         Depends(get_question_answer_service),
     ],
 ):
+    is_admin = "ADMIN" in user.roles
     result = await question_answering_service.answer(
         query=request.query,
         limit=request.limit,
         document_id=request.document_id,
+        user_id=user.user_id,
+        is_admin=is_admin,
     )
 
     return QuestionResponse(

@@ -107,6 +107,9 @@ def me(
     return success(
         data={
             "user_id": user.user_id,
+            "preferred_username": user.preferred_username,
+            "name": user.name,
+            "email": user.email,
             "roles": user.roles,
             "authenticated": user.authenticated,
             "provider": user.identity_provider,

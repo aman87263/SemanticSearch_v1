@@ -13,4 +13,6 @@ export interface Document {
     chunkCount?: number;
     progress: number;
     fileHash?: string;   // Returned by backend
+    uploaderEmail?: string;
+    uploaderName?: string;
 }

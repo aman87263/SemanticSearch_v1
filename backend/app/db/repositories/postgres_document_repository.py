@@ -21,7 +21,11 @@ class PostgresDocumentRepository(IDocumentRepository):
                 uploaded_at,
                 status,
                 progress,
-                chunk_count
+                chunk_count,
+                owner_id,
+                uploader_email,
+                uploader_name,
+                visibility
             )
             VALUES (
                 %(id)s,
@@ -32,7 +36,11 @@ class PostgresDocumentRepository(IDocumentRepository):
                 %(uploaded_at)s,
                 %(status)s,
                 %(progress)s,
-                %(chunk_count)s
+                %(chunk_count)s,
+                %(owner_id)s,
+                %(uploader_email)s,
+                %(uploader_name)s,
+                %(visibility)s
             );
         """
 
@@ -46,6 +54,10 @@ class PostgresDocumentRepository(IDocumentRepository):
             "status": document.status.value,
             "progress": document.upload_progress,
             "chunk_count": document.chunk_count,
+            "owner_id": document.owner_id,
+            "uploader_email": document.uploader_email,
+            "uploader_name": document.uploader_name,
+            "visibility": document.visibility.value,
         }
 
         with psycopg.connect(self._database_url) as connection:
@@ -64,7 +76,8 @@ class PostgresDocumentRepository(IDocumentRepository):
                 uploaded_at,
                 status,
                 progress,
-                chunk_count
+                chunk_count,
+                owner_id
             FROM documents
             ORDER BY uploaded_at DESC;
         """
@@ -72,6 +85,31 @@ class PostgresDocumentRepository(IDocumentRepository):
         with psycopg.connect(self._database_url) as connection:
             with connection.cursor(row_factory=psycopg.rows.dict_row) as cursor:
                 cursor.execute(query)
+                rows = cursor.fetchall()
+
+        return [self._to_document(row) for row in rows]
+
+    def get_by_owner(self, owner_id: str) -> list[Document]:
+        query = """
+            SELECT
+                id,
+                name,
+                size,
+                file_hash,
+                storage_key,
+                uploaded_at,
+                status,
+                progress,
+                chunk_count,
+                owner_id
+            FROM documents
+            WHERE owner_id = %(owner_id)s
+            ORDER BY uploaded_at DESC;
+        """
+
+        with psycopg.connect(self._database_url) as connection:
+            with connection.cursor(row_factory=psycopg.rows.dict_row) as cursor:
+                cursor.execute(query, {"owner_id": owner_id})
                 rows = cursor.fetchall()
 
         return [self._to_document(row) for row in rows]
@@ -117,7 +155,7 @@ class PostgresDocumentRepository(IDocumentRepository):
 
         return deleted
 
-    def get_by_hash(self, file_hash: str) -> Document | None:
+    def get_by_hash_and_owner(self, file_hash: str, owner_id: str) -> Document | None:
         query = """
             SELECT
                 id,
@@ -128,9 +166,10 @@ class PostgresDocumentRepository(IDocumentRepository):
                 uploaded_at,
                 status,
                 progress,
-                chunk_count
+                chunk_count,
+                owner_id
             FROM documents
-            WHERE file_hash = %(file_hash)s
+            WHERE file_hash = %(file_hash)s AND owner_id = %(owner_id)s
             LIMIT 1;
         """
 
@@ -138,7 +177,7 @@ class PostgresDocumentRepository(IDocumentRepository):
             with connection.cursor(row_factory=psycopg.rows.dict_row) as cursor:
                 cursor.execute(
                     query,
-                    {"file_hash": file_hash},
+                    {"file_hash": file_hash, "owner_id": owner_id},
                 )
                 row = cursor.fetchone()
 
@@ -158,7 +197,11 @@ class PostgresDocumentRepository(IDocumentRepository):
                 uploaded_at = %(uploaded_at)s,
                 status = %(status)s,
                 progress = %(progress)s,
-                chunk_count = %(chunk_count)s
+                chunk_count = %(chunk_count)s,
+                owner_id = %(owner_id)s,
+                uploader_email = %(uploader_email)s,
+                uploader_name = %(uploader_name)s,
+                visibility = %(visibility)s
             WHERE id = %(id)s;
         """
 
@@ -172,6 +215,10 @@ class PostgresDocumentRepository(IDocumentRepository):
             "status": document.status.value,
             "progress": document.upload_progress,
             "chunk_count": document.chunk_count,
+            "owner_id": document.owner_id,
+            "uploader_email": document.uploader_email,
+            "uploader_name": document.uploader_name,
+            "visibility": document.visibility.value,
         }
 
         with psycopg.connect(self._database_url) as connection:
@@ -192,4 +239,7 @@ class PostgresDocumentRepository(IDocumentRepository):
             status=DocumentStatus(row["status"]),
             upload_progress=row["progress"],
             chunk_count=row["chunk_count"],
+            owner_id=row.get("owner_id"),
+            uploader_email=row.get("uploader_email"),
+            uploader_name=row.get("uploader_name"),
         )

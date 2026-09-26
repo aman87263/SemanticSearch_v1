@@ -17,11 +17,19 @@ export function DocumentProvider({
 
     useEffect(() => {
         if (!isAuthenticated) {
+            setDocuments([]);
             return;
         }
 
         void refreshDocuments();
     }, [isAuthenticated]);
+
+    // Also fetch on mount if already authenticated (e.g., after session restore)
+    useEffect(() => {
+        if (isAuthenticated && documents.length === 0) {
+            void refreshDocuments();
+        }
+    }, []);
 
     async function uploadDocument(file: File): Promise<void> {
         setLoading(true);

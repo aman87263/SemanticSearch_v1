@@ -1,10 +1,13 @@
 import { useRef, useState } from "react";
 
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import CircularProgress from "@mui/material/CircularProgress";
 import {
+    Box,
     Button,
     Paper,
-    Typography
+    Typography,
+    Alert
 } from "@mui/material";
 
 import { useDocuments } from "../../hooks/useDocuments";
@@ -28,8 +31,9 @@ function isSupportedFile(file: File): boolean {
 }
 
 export default function UploadZone() {
-    const { uploadDocument } = useDocuments();
+    const { uploadDocument, loading } = useDocuments();
     const [isDragging, setIsDragging] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -61,12 +65,19 @@ export default function UploadZone() {
             return;
         }
 
+        setError(null);
+
         if (!isSupportedFile(file)) {
-            alert(`Only ${EXTENSION_LABELS} files are supported.`);
+            setError(`Only ${EXTENSION_LABELS} files are supported.`);
             return;
         }
 
-        await uploadDocument(file);
+        try {
+            await uploadDocument(file);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Upload failed. Please try again.";
+            setError(message);
+        }
     }
 
     async function handleFileSelect(
@@ -92,12 +103,12 @@ export default function UploadZone() {
                 backgroundColor: isDragging
                     ? "action.hover"
                     : "transparent",
-                cursor: "pointer",
+                cursor: loading ? "wait" : "pointer",
                 "&:hover": {
                     borderColor: "primary.main",
                 },
             }}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={loading ? undefined : () => fileInputRef.current?.click()}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -108,37 +119,56 @@ export default function UploadZone() {
                 accept={SUPPORTED_EXTENSIONS.join(",")}
                 hidden
                 onChange={handleFileSelect}
+                disabled={loading}
             />
 
-            <CloudUploadIcon
-                sx={{
-                    fontSize: 64,
-                    color: "primary.main",
-                    mb: 2,
-                }}
-            />
+            {error && (
+                <Alert severity="error" sx={{ mb: 2, textAlign: "left" }}>
+                    {error}
+                </Alert>
+            )}
 
-            <Typography variant="h5" gutterBottom>
-                Upload Documents
-            </Typography>
+            {loading ? (
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                    <CircularProgress size={64} color="primary" />
+                    <Typography variant="h6">Uploading document...</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Please wait while the document is being processed.
+                    </Typography>
+                </Box>
+            ) : (
+                <>
+                    <CloudUploadIcon
+                        sx={{
+                            fontSize: 64,
+                            color: "primary.main",
+                            mb: 2,
+                        }}
+                    />
 
-            <Typography
-                variant="body1"
-                color="text.secondary"
-                sx={{ mb: 3 }}
-            >
-                Click anywhere or drag and drop {EXTENSION_LABELS} files here.
-            </Typography>
+                    <Typography variant="h5" gutterBottom>
+                        Upload Documents
+                    </Typography>
 
-            <Button
-                variant="contained"
-                onClick={(event) => {
-                    event.stopPropagation();
-                    fileInputRef.current?.click();
-                }}
-            >
-                Choose File
-            </Button>
+                    <Typography
+                        variant="body1"
+                        color="text.secondary"
+                        sx={{ mb: 3 }}
+                    >
+                        Click anywhere or drag and drop {EXTENSION_LABELS} files here.
+                    </Typography>
+
+                    <Button
+                        variant="contained"
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            fileInputRef.current?.click();
+                        }}
+                    >
+                        Choose File
+                    </Button>
+                </>
+            )}
         </Paper>
     );
 }

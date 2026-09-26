@@ -40,12 +40,17 @@ class DocumentService:
         self._storage_service = storage_service
         self._processing_pipeline = processing_pipeline
 
-    def get_documents(self):
-        documents = self._repository.get_all()
+    def get_documents(self, user_id: str | None = None, is_admin: bool = False):
+        if is_admin:
+            documents = self._repository.get_all()
+        elif user_id:
+            documents = self._repository.get_by_owner(user_id)
+        else:
+            documents = []
         return [DocumentMapper.to_response(doc) for doc in documents]
 
     async def upload_document(
-        self, request: UploadDocumentRequest
+        self, request: UploadDocumentRequest, user_id: str, uploader_email: str | None = None, uploader_name: str | None = None
     ) -> UploadDocumentResponse:
 
         file = request.file
@@ -56,8 +61,8 @@ class DocumentService:
         # 2. Calculate hash
         file_hash = self._hash_service.calculate_hash(file.file)
 
-        # 3. Check duplicate
-        existing = self._duplicate_service.find_duplicate(file_hash)
+        # 3. Check duplicate (per-user)
+        existing = self._duplicate_service.find_duplicate(file_hash, user_id)
 
         if existing:
             return UploadDocumentResponse(
@@ -87,7 +92,9 @@ class DocumentService:
 
         # 6. Persist
         # Phase 1 ownership and visibility metadata default values.
-        document.owner_id = "system"
+        document.owner_id = user_id
+        document.uploader_email = uploader_email
+        document.uploader_name = uploader_name
         document.visibility = DocumentVisibility.PRIVATE
         self._repository.add(document)
 

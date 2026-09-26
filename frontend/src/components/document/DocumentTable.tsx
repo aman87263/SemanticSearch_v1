@@ -34,6 +34,7 @@ export default function DocumentTable() {
                 <TableHead>
                     <TableRow>
                         <TableCell>Name</TableCell>
+                        <TableCell>Uploader</TableCell>
                         <TableCell>Status</TableCell>
                         <TableCell align="right">Size</TableCell>
                         <TableCell align="right">Chunks</TableCell>

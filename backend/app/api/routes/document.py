@@ -26,13 +26,17 @@ router = APIRouter(
     response_model=ApiResponse[list[DocumentResponse]],
 )
 def get_documents(
-    _user: Annotated[CurrentUser, Depends(require_authenticated_user)],
-    service: Annotated[  # This is where dependency injection happens, we are injecting the DocumentService into the route handler
+    user: Annotated[
+        CurrentUser,
+        Depends(require_authenticated_user),
+    ],
+    service: Annotated[
         DocumentService,
         Depends(get_document_service),
     ],
 ):
-    documents = service.get_documents()
+    is_admin = "ADMIN" in user.roles
+    documents = service.get_documents(user_id=user.user_id, is_admin=is_admin)
     return success(data=documents)
 
 
@@ -42,7 +46,7 @@ def get_documents(
 )
 async def upload_document(
     file: UploadFile,
-    _user: Annotated[CurrentUser, Depends(require_authenticated_user)],
+    user: Annotated[CurrentUser, Depends(require_authenticated_user)],
     service: Annotated[
         DocumentService,
         Depends(get_document_service),
@@ -50,7 +54,12 @@ async def upload_document(
 ):
     request = UploadDocumentRequest(file=file)
 
-    document = await service.upload_document(request)
+    document = await service.upload_document(
+        request, 
+        user_id=user.user_id,
+        uploader_email=user.email,
+        uploader_name=user.name,
+    )
 
     return success(data=document)
 

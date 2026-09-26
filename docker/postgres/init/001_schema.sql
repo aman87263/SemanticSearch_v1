@@ -9,7 +9,11 @@ CREATE TABLE documents (
     uploaded_at TIMESTAMPTZ NOT NULL,
     status TEXT NOT NULL,
     progress INTEGER NOT NULL DEFAULT 0,
-    chunk_count INTEGER
+    chunk_count INTEGER,
+    owner_id TEXT,
+    uploader_email TEXT,
+    uploader_name TEXT,
+    visibility TEXT
 );
 
 CREATE TABLE document_chunks (

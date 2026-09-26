@@ -6,7 +6,9 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    Typography
+    Typography,
+    Avatar,
+    Tooltip
 } from "@mui/material";
 
 import ChatIcon from "@mui/icons-material/Chat";
@@ -16,18 +18,51 @@ import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
+import PersonIcon from "@mui/icons-material/Person";
 
 import { NavLink } from "react-router-dom";
+import React from "react";
 import { clearAuthSession, notifyAuthChanged } from "../../auth/session";
 import { getKeycloakLogoutUrl, redirectToKeycloakLogin } from "../../config/keycloak";
 import { useAuth } from "../../context/useAuth";
+import { apiRequest } from "../../services/http/httpClient";
 
 const API_BASE_URL =
     (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
     "http://localhost:8000/api";
 
+interface UserInfo {
+    user_id: string;
+    roles: string[];
+    authenticated: boolean;
+    provider: string;
+}
+
 export default function Sidebar() {
     const { isAuthenticated } = useAuth();
+    const [userInfo, setUserInfo] = React.useState<UserInfo | null>(null);
+
+    // Fetch user info on authentication
+    React.useEffect(() => {
+        if (isAuthenticated) {
+            apiRequest<{ success: boolean; data: UserInfo }>("/auth/me")
+                .then(response => {
+                    if (response.success && response.data) {
+                        setUserInfo(response.data);
+                    }
+                })
+                .catch(() => setUserInfo(null));
+        } else {
+            setUserInfo(null);
+        }
+    }, [isAuthenticated]);
+
+    interface UserInfo {
+        user_id: string;
+        roles: string[];
+        authenticated: boolean;
+        provider: string;
+    }
 
     const handleLogout = async () => {
         // First, call backend to invalidate server-side session and clear HttpOnly cookie
@@ -106,6 +141,26 @@ export default function Sidebar() {
                         </ListItemIcon>
                         <ListItemText primary="Login" />
                     </ListItemButton>
+                )}
+
+                {isAuthenticated && userInfo && (
+                    <Box sx={{ px: 2, py: 1 }}>
+                        <Tooltip title={userInfo.roles.join(", ")}>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                <Avatar variant="rounded" sx={{ width: 32, height: 32 }}>
+                                    <PersonIcon fontSize="small" />
+                                </Avatar>
+                                <Box>
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                        {userInfo.email || userInfo.preferred_username || userInfo.user_id}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {userInfo.roles.includes("ADMIN") ? "Administrator" : "User"}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </Tooltip>
+                    </Box>
                 )}
 
                 {isAuthenticated && (

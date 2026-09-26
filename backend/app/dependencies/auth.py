@@ -77,6 +77,9 @@ KEYCLOAK_JWKS_VERIFY_ENABLED = os.getenv(
 
 class CurrentUser(BaseModel):
     user_id: str
+    preferred_username: str | None = None
+    name: str | None = None
+    email: str | None = None
     roles: list[str]
     authenticated: bool = True
     auth_header: str | None = None
@@ -226,6 +229,9 @@ def get_current_user(
 
     return CurrentUser(
         user_id=str(user_id),
+        preferred_username=claims.get("preferred_username"),
+        name=claims.get("name"),
+        email=claims.get("email"),
         roles=roles,
         authenticated=True,
         auth_header=f"Bearer {token}",

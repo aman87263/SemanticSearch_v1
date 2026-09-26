@@ -20,17 +20,21 @@ router = APIRouter(
 )
 async def search(
     request: SearchRequest,
-    _user: Annotated[CurrentUser, Depends(require_authenticated_user)],
+    user: Annotated[CurrentUser, Depends(require_authenticated_user)],
     retrieval_service: Annotated[
         RetrievalService,
         Depends(get_retrieval_service),
     ],
 ) -> SearchResponse:
 
+    is_admin = "ADMIN" in user.roles
+
     results = await retrieval_service.retrieve(
         query=request.query,
         limit=request.limit,
         document_id=request.document_id,
+        user_id=user.user_id,
+        is_admin=is_admin,
     )
 
     return SearchResponse(

@@ -18,6 +18,8 @@ interface DocumentApiResponse {
     processing_progress: number;
     uploadedAt: string;
     chunkCount?: number | null;
+    uploaderEmail?: string;
+    uploaderName?: string;
 }
 
 interface UploadDocumentApiResponse {
@@ -34,6 +36,8 @@ function mapDocument(document: DocumentApiResponse): Document {
         progress: document.progress,
         uploadedAt: new Date(document.uploadedAt),
         chunkCount: document.chunkCount ?? undefined,
+        uploaderEmail: document.uploaderEmail,
+        uploaderName: document.uploaderName,
     };
 }
 

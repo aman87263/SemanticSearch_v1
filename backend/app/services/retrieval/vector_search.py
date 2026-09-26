@@ -20,6 +20,8 @@ class VectorSearch:
         query: str,
         limit: int = 5,
         document_id: UUID | None = None,
+        user_id: str | None = None,
+        is_admin: bool = False,
     ) -> list[RetrievedChunk]:
 
         if not query or not query.strip():
@@ -31,4 +33,6 @@ class VectorSearch:
             query_vector=query_vector,
             limit=limit,
             document_id=document_id,
+            user_id=user_id,
+            is_admin=is_admin,
         )
