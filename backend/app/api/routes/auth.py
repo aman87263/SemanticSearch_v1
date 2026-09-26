@@ -419,20 +419,24 @@ async def refresh_session(
     }
 
     try:
+        print(f"DEBUG REFRESH: Calling Keycloak at {KEYCLOAK_TOKEN_URL}")
         async with httpx.AsyncClient(timeout=10.0) as client:
 
             token_response = await client.post(
                 KEYCLOAK_TOKEN_URL,
                 data=token_request,
             )
+        print(f"DEBUG REFRESH: Keycloak response status={token_response.status_code}")
 
     except httpx.HTTPError:
+        print(f"DEBUG REFRESH: Keycloak HTTP error: {e}")
         raise HTTPException(
             status_code=502,
             detail="Unable to contact identity provider",
         )
 
     if token_response.status_code != 200:
+        print(f"DEBUG REFRESH: Keycloak error response: {token_response.text}")
         session["revoked"] = True
 
         raise HTTPException(

@@ -19,6 +19,7 @@ export async function apiRequest<T>(
         {
             ...init,
             headers,
+            credentials: "include",
         }
     );
 

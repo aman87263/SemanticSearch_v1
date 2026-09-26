@@ -27,6 +27,9 @@ PUBLIC_PATHS: Set[str] = {
     "/auth/",
     "/auth/me",
     "/auth/keycloak/config",
+    "/api/health",
+    "/api/auth/session",
+    "/api/auth/refresh",  # Allow refresh to validate session itself
     "/docs",
     "/redoc",
     "/openapi.json",
@@ -71,7 +74,7 @@ class SessionValidationMiddleware(BaseHTTPMiddleware):
                         code="SESSION_INVALID",
                         message="Invalid or missing session",
                     )
-                ).model_dump(),
+                ).model_dump(mode="json"),
             )
         
         # Add session info to request state for downstream use
@@ -92,16 +95,48 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
         # Only check CSRF for state-changing methods
         if request.method not in {"POST", "PUT", "PATCH", "DELETE"}:
             return await call_next(request)
-        
-        # Only check CSRF for protected paths
+
         path = request.url.path
-        if path not in CSRF_PROTECTED_PATHS: #not any(path.startswith(p) for p in CSRF_PROTECTED_PATHS):
+
+        # Allow the initial auth-code exchange to create the first server-side session
+        # before any session cookie exists. Browser requests usually include Origin,
+        # but direct API/test calls can legitimately omit it at bootstrap time.
+        if path == "/api/auth/session":
+            origin = request.headers.get("origin")
+            referer = request.headers.get("referer")
+
+            if origin and not self._is_allowed_origin(origin):
+                return JSONResponse(
+                    status_code=403,
+                    content=failure(
+                        error=ApiError(
+                            code="CSRF_INVALID_ORIGIN",
+                            message="Invalid Origin header",
+                        )
+                    ).model_dump(mode="json"),
+                )
+
+            if referer and not self._is_allowed_origin(referer):
+                return JSONResponse(
+                    status_code=403,
+                    content=failure(
+                        error=ApiError(
+                            code="CSRF_INVALID_REFERER",
+                            message="Invalid Referer header",
+                        )
+                    ).model_dump(mode="json"),
+                )
+
             return await call_next(request)
-        
+
+        # Only check CSRF for protected paths
+        if path not in CSRF_PROTECTED_PATHS:
+            return await call_next(request)
+
         # Validate Origin header
         origin = request.headers.get("origin")
         referer = request.headers.get("referer")
-        
+
         # Check Origin header first (preferred)
         if origin:
             if not self._is_allowed_origin(origin):
@@ -112,7 +147,7 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
                             code="CSRF_INVALID_ORIGIN",
                             message="Invalid Origin header",
                         )
-                    ).model_dump(),
+                    ).model_dump(mode="json"),
                 )
         # Fall back to Referer header
         elif referer:
@@ -124,7 +159,7 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
                             code="CSRF_INVALID_REFERER",
                             message="Invalid Referer header",
                         )
-                    ).model_dump(),
+                    ).model_dump(mode="json"),
                 )
         # No Origin or Referer - reject for security
         else:
@@ -135,9 +170,9 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
                         code="CSRF_MISSING_ORIGIN",
                         message="Missing Origin or Referer header",
                     )
-                ).model_dump(),
+                ).model_dump(mode="json"),
             )
-        
+
         return await call_next(request)
     
     def _is_allowed_origin(self, origin: str) -> bool:
@@ -184,5 +219,5 @@ async def value_error_handler(_request: Request, exc: ValueError):
                 code=code,
                 message=message,
             )
-        ).model_dump(),
+        ).model_dump(mode="json"),
     )

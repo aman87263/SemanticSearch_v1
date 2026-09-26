@@ -4,6 +4,7 @@ import { Box, Typography, CircularProgress } from "@mui/material";
 
 import {
     clearOAuthState,
+    consumeCodeVerifier,
     isOAuthStateValid,
     notifyAuthChanged,
     setAccessToken,
@@ -29,6 +30,12 @@ export default function LoginCallbackPage() {
         if (!code) {
             return;
         }
+        // Remove OAuth parameters from the address bar immediately.
+        window.history.replaceState(
+            {},
+            document.title,
+            "/login/callback"
+        );
 
         if (inflightAuthCode === code || didExchange.current) {
             return;
@@ -49,6 +56,11 @@ export default function LoginCallbackPage() {
                 // Exchange authorization code with backend (BFF pattern)
                 // Backend will exchange code with Keycloak, store refresh token server-side,
                 // set HttpOnly session cookie, and return access token for in-memory storage
+                const codeVerifier = consumeCodeVerifier();
+                if (!codeVerifier) {
+                    throw new Error("PKCE code_verifier not found. Please try signing in again.");
+                }
+
                 const sessionResponse = await fetch(
                     `${API_BASE_URL}/auth/session`,
                     {
@@ -59,7 +71,7 @@ export default function LoginCallbackPage() {
                         },
                         body: JSON.stringify({
                             code: authCode,
-                            code_verifier: "", // PKCE not yet implemented on frontend
+                            code_verifier: codeVerifier,
                             redirect_uri: keycloakConfig.redirectUri,
                         }),
                     }
@@ -92,6 +104,10 @@ export default function LoginCallbackPage() {
                 // Store access token in memory only (never in localStorage/sessionStorage)
                 const accessToken = sessionPayload.data.access_token ?? null;
                 setAccessToken(accessToken);
+
+                // Mark as just logged in to prevent AuthProvider from calling restoreSession()
+                // which would race with the session cookie being established
+                sessionStorage.setItem("semanticsearch_just_logged_in", "true");
 
                 // Notify auth state change
                 clearOAuthState();

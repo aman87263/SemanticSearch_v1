@@ -31,7 +31,7 @@ SESSION_STORE: dict[str, dict[str, object]] = {}
 
 KEYCLOAK_BASE_URL = os.getenv(
     "KEYCLOAK_BASE_URL",
-    "http://localhost:9090",
+    "http://keycloak:8080",
 ).rstrip("/")
 
 KEYCLOAK_REALM = os.getenv(
