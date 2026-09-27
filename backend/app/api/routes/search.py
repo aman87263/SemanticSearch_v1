@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.dependencies.auth import CurrentUser, require_authenticated_user
+from app.dependencies.auth import CurrentUser, get_current_user_optional, require_authenticated_user
 from app.dependencies.retrieval import get_retrieval_service
 from app.services.retrieval.retrieval_service import RetrievalService
 from app.schemas.search.search_request import SearchRequest
@@ -20,17 +20,22 @@ router = APIRouter(
 )
 async def search(
     request: SearchRequest,
-    _user: Annotated[CurrentUser, Depends(require_authenticated_user)],
+    user: Annotated[CurrentUser | None, Depends(get_current_user_optional)],
     retrieval_service: Annotated[
         RetrievalService,
         Depends(get_retrieval_service),
     ],
 ) -> SearchResponse:
 
+    is_admin = "ADMIN" in user.roles if user else False
+    user_id = user.user_id if user else None
+
     results = await retrieval_service.retrieve(
         query=request.query,
         limit=request.limit,
         document_id=request.document_id,
+        user_id=user_id,
+        is_admin=is_admin,
     )
 
     return SearchResponse(

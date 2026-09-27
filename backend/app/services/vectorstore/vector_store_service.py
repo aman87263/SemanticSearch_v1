@@ -17,5 +17,7 @@ class VectorStoreService:
         query_vector: list[float],
         limit: int = 5,
         document_id: UUID | None = None,
+        user_id: str | None = None,
+        is_admin: bool = False,
     ) -> list[RetrievedChunk]:
-        return await self._provider.search(query_vector, limit, document_id)
+        return await self._provider.search(query_vector, limit, document_id, user_id, is_admin)

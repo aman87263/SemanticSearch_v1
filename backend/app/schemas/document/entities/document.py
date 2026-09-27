@@ -30,6 +30,8 @@ class Document(BaseModel):
 
     # Ownership and visibility
     owner_id: str | None = None
+    uploader_email: str | None = None
+    uploader_name: str | None = None
     visibility: DocumentVisibility = DocumentVisibility.PRIVATE
 
     # Lifecycle

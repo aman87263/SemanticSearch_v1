@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from app.schemas.document.entities.document import Document
+from app.schemas.document.entities.document import Document, DocumentVisibility
 from app.db.repositories.interfaces.document_repository import IDocumentRepository
 
 
@@ -18,15 +18,21 @@ class MemoryDocumentRepository(IDocumentRepository):
             None,
         )
 
-    def get_by_hash(self, file_hash: str):
+    def get_by_hash_and_owner(self, file_hash: str, owner_id: str):
         return next(
             (
                 document
                 for document in self._documents
-                if document.file_hash == file_hash
+                if document.file_hash == file_hash and document.owner_id == owner_id
             ),
             None,
         )
+
+    def get_by_owner(self, owner_id: str):
+        return [document for document in self._documents if document.owner_id == owner_id]
+
+    def get_public(self):
+        return [document for document in self._documents if document.visibility == DocumentVisibility.PUBLIC]
 
     def add(self, document):
         self._documents.append(document)

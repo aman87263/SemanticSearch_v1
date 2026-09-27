@@ -74,12 +74,16 @@ class PgVectorStore(IVectorStore):
         query_vector: list[float],
         limit: int = 5,
         document_id: UUID | None = None,
+        user_id: str | None = None,
+        is_admin: bool = False,
     ) -> list[RetrievedChunk]:
         return await asyncio.to_thread(
             self._search_sync,
             query_vector,
             limit,
             document_id,
+            user_id,
+            is_admin,
         )
 
     def _search_sync(
@@ -87,8 +91,40 @@ class PgVectorStore(IVectorStore):
         query_vector: list[float],
         limit: int,
         document_id: UUID | None = None,
+        user_id: str | None = None,
+        is_admin: bool = False,
     ) -> list[RetrievedChunk]:
-        query = """
+        if is_admin:
+            # Admin can see all documents
+            where_clause = """
+            WHERE (
+                %(document_id)s::uuid IS NULL
+                OR chunks.document_id = %(document_id)s::uuid
+            )
+            """
+        elif user_id:
+            # Authenticated users can see their own private documents AND public documents
+            where_clause = """
+            WHERE (
+                (%(document_id)s::uuid IS NULL
+                OR chunks.document_id = %(document_id)s::uuid)
+                AND (
+                    documents.owner_id = %(user_id)s
+                    OR documents.visibility = 'PUBLIC'
+                )
+            )
+            """
+        else:
+            # Anonymous users can only see public documents
+            where_clause = """
+            WHERE (
+                (%(document_id)s::uuid IS NULL
+                OR chunks.document_id = %(document_id)s::uuid)
+                AND documents.visibility = 'PUBLIC'
+            )
+            """
+
+        query = f"""
         SELECT
             chunks.id,
             chunks.document_id,
@@ -101,10 +137,7 @@ class PgVectorStore(IVectorStore):
         FROM document_chunks AS chunks
         LEFT JOIN documents
             ON documents.id = chunks.document_id
-        WHERE (
-            %(document_id)s::uuid IS NULL
-            OR chunks.document_id = %(document_id)s::uuid
-        )
+        {where_clause}
         ORDER BY chunks.embedding <=> %(query_vector)s::vector
         LIMIT %(limit)s;
         """
@@ -113,12 +146,20 @@ class PgVectorStore(IVectorStore):
             "query_vector": self._vector_to_string(query_vector),
             "limit": limit,
             "document_id": document_id,
+            "user_id": user_id,
         }
+
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Vector search: user_id={user_id}, is_admin={is_admin}, document_id={document_id}")
+        logger.info(f"Query: {query}")
+        logger.info(f"Params: {params}")
 
         with psycopg.connect(self._database_url) as connection:
             with connection.cursor(row_factory=psycopg.rows.dict_row) as cursor:
                 cursor.execute(query, params)
                 rows = cursor.fetchall()
+                logger.info(f"Vector search returned {len(rows)} rows")
 
         return [
             RetrievedChunk(

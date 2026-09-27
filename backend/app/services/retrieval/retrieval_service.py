@@ -24,6 +24,8 @@ class RetrievalService:
         query: str,
         limit: int | None = None,
         document_id: UUID | None = None,
+        user_id: str | None = None,
+        is_admin: bool = False,
     ) -> list[RetrievedChunk]:
 
         if not query or not query.strip():
@@ -35,6 +37,8 @@ class RetrievalService:
             query=query,
             limit=settings.retrieval.candidate_limit,
             document_id=document_id,
+            user_id=user_id,
+            is_admin=is_admin,
         )
 
         results = [

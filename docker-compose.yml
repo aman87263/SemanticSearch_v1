@@ -16,7 +16,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
-
+# todo remove postgres
   # Ollama service kept as a commented reference for local experiments.
   # ollama:
   #   image: ollama/ollama:latest
@@ -43,15 +43,31 @@ services:
     build:
       context: ./backend
     restart: unless-stopped
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 -m uvicorn app.main:app --host 0.0.0.0 --port 8000
     environment:
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
       DATABASE_URL: ${DATABASE_URL}
       UPLOAD_DIRECTORY: ${UPLOAD_DIRECTORY}
       # OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
+      KEYCLOAK_REFRESH_EXCHANGE_ENABLED: ${KEYCLOAK_REFRESH_EXCHANGE_ENABLED}
+      KEYCLOAK_BASE_URL: http://host.docker.internal:9090
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_AUDIENCE: ${KEYCLOAK_AUDIENCE}
+      KEYCLOAK_JWKS_TIMEOUT_SEC: ${KEYCLOAK_JWKS_TIMEOUT_SEC}
+      KEYCLOAK_JWKS_VERIFY_ENABLED: ${KEYCLOAK_JWKS_VERIFY_ENABLED}
+      KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI}
+      KEYCLOAK_POST_LOGOUT_REDIRECT_URI: ${KEYCLOAK_POST_LOGOUT_REDIRECT_URI}
+      KEYCLOAK_SCOPE: ${KEYCLOAK_SCOPE}
+      KEYCLOAK_REDIRECT_URI_FALLBACK: ${KEYCLOAK_REDIRECT_URI_FALLBACK}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE}
+      SESSION_COOKIE_SAMESITE: ${SESSION_COOKIE_SAMESITE}
+      SESSION_MAX_AGE_SECONDS: ${SESSION_MAX_AGE_SECONDS}
     ports:
       - "${BACKEND_PORT}:8000"
+      - "5678:5678"
     volumes:
       - ./backend:/app
       - backend_uploads:/app/uploads
@@ -95,7 +111,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM:-semanticsearch}
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-semanticsearch-web}
-      KEYCLOAK_POST_LOGOUT_REDIRECT_URIS: ${KEYCLOAK_POST_LOGOUT_REDIRECT_URIS:-http://localhost:5173/login##http://localhost:8080/login##http://localhost:5173/*##http://localhost:8080/*}
+      KEYCLOAK_POST_LOGOUT_REDIRECT_URIS: ${KEYCLOAK_POST_LOGOUT_REDIRECT_URIS:-["http://localhost:5173/login","http://localhost:8080/login","http://localhost:5173/*","http://localhost:8080/*"]}
     volumes:
       - ./docker/keycloak/configure-semanticsearch-client.sh:/scripts/configure-semanticsearch-client.sh:ro
     depends_on:
@@ -109,7 +125,7 @@ services:
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL}
     restart: unless-stopped
-    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5173"
+    command: npm run dev -- --host 0.0.0.0 --port 5173
     environment:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL}
       VITE_KEYCLOAK_URL: ${KEYCLOAK_URL:-http://localhost:9090}

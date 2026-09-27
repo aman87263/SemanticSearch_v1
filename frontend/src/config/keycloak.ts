@@ -1,4 +1,4 @@
-import { createOAuthState, getStoredIdToken } from "../auth/session";
+import { createOAuthState, getStoredIdToken, generateCodeVerifier, generateCodeChallenge, setCodeVerifier } from "../auth/session";
 
 function readEnv(name: string, viteName: string, fallback: string): string {
   const value =
@@ -53,17 +53,25 @@ export const keycloakConfig = {
   ),
 };
 
-export function getKeycloakLoginUrl() {
-  const state = createOAuthState();
-  const params = new URLSearchParams({
-    client_id: keycloakConfig.clientId,
-    redirect_uri: keycloakConfig.redirectUri,
-    response_type: "code",
-    scope: keycloakConfig.scope,
-    state,
-  });
+export async function getKeycloakLoginUrl() {
+    const state = createOAuthState();
 
-  return `${keycloakConfig.url}/realms/${keycloakConfig.realm}/protocol/openid-connect/auth?${params.toString()}`;
+    // Generate PKCE code_verifier and code_challenge
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = await generateCodeChallenge(codeVerifier);
+    setCodeVerifier(codeVerifier);
+
+    const params = new URLSearchParams({
+        client_id: keycloakConfig.clientId,
+        redirect_uri: keycloakConfig.redirectUri,
+        response_type: "code",
+        scope: keycloakConfig.scope,
+        state,
+        code_challenge: codeChallenge,
+        code_challenge_method: "S256",
+    });
+
+    return `${keycloakConfig.url}/realms/${keycloakConfig.realm}/protocol/openid-connect/auth?${params.toString()}`;
 }
 
 export function getKeycloakLogoutUrl(idTokenHint?: string | null) {
@@ -81,5 +89,8 @@ export function getKeycloakLogoutUrl(idTokenHint?: string | null) {
 }
 
 export function redirectToKeycloakLogin() {
-  window.location.assign(getKeycloakLoginUrl());
+    // getKeycloakLoginUrl is now async due to PKCE code_challenge generation
+    void getKeycloakLoginUrl().then((url) => {
+        window.location.assign(url);
+    });
 }

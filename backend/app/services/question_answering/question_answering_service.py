@@ -35,12 +35,16 @@ class QuestionAnsweringService:
         limit: int = 5,
         document_id: UUID | None = None,
         max_chars: int | None = None,
+        user_id: str | None = None,
+        is_admin: bool = False,
     ) -> QAResponse:
 
         chunks = await self._retrieval_service.retrieve(
             query=query,
             limit=limit,
             document_id=document_id,
+            user_id=user_id,
+            is_admin=is_admin,
         )
 
         context = self._context_builder.build(

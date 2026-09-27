@@ -15,5 +15,7 @@ class IVectorStore(ABC):
         query_vector: list[float],
         limit: int = 5,
         document_id: UUID | None = None,
+        user_id: str | None = None,
+        is_admin: bool = False,
     ) -> list[RetrievedChunk]:
         pass

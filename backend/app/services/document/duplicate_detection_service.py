@@ -15,5 +15,6 @@ class DuplicateDetectionService:
     def find_duplicate(
         self,
         file_hash: str,
+        owner_id: str,
     ) -> Document | None:
-        return self._repository.get_by_hash(file_hash)
+        return self._repository.get_by_hash_and_owner(file_hash, owner_id)

@@ -40,13 +40,30 @@ class DocumentService:
         self._storage_service = storage_service
         self._processing_pipeline = processing_pipeline
 
-    def get_documents(self):
-        documents = self._repository.get_all()
+    def get_documents(self, user_id: str | None = None, is_admin: bool = False):
+        if is_admin:
+            documents = self._repository.get_all()
+        elif user_id:
+            # User sees their own documents + all public documents from other users
+            own_docs = self._repository.get_by_owner(user_id)
+            public_docs = self._repository.get_public()
+            # Combine and deduplicate (in case user owns some public docs)
+            doc_map = {doc.id: doc for doc in own_docs}
+            for doc in public_docs:
+                if doc.id not in doc_map:
+                    doc_map[doc.id] = doc
+            documents = list(doc_map.values())
+        else:
+            documents = self._repository.get_public()
         return [DocumentMapper.to_response(doc) for doc in documents]
 
     async def upload_document(
-        self, request: UploadDocumentRequest
+        self, request: UploadDocumentRequest, user_id: str, uploader_email: str | None = None, uploader_name: str | None = None, visibility: DocumentVisibility = DocumentVisibility.PRIVATE
     ) -> UploadDocumentResponse:
+        print(f"DEBUG SERVICE START: visibility = {visibility}, type = {type(visibility)}")
+        print(f"DEBUG SERVICE START: user_id = {user_id}")
+        print(f"DEBUG SERVICE START: uploader_email = {uploader_email}")
+        print(f"DEBUG SERVICE START: uploader_name = {uploader_name}")
 
         file = request.file
 
@@ -56,8 +73,8 @@ class DocumentService:
         # 2. Calculate hash
         file_hash = self._hash_service.calculate_hash(file.file)
 
-        # 3. Check duplicate
-        existing = self._duplicate_service.find_duplicate(file_hash)
+        # 3. Check duplicate (per-user)
+        existing = self._duplicate_service.find_duplicate(file_hash, user_id)
 
         if existing:
             return UploadDocumentResponse(
@@ -83,12 +100,13 @@ class DocumentService:
             upload_progress=100,
             processing_progress=0,
             chunk_count=None,
+            visibility=visibility,
         )
 
         # 6. Persist
-        # Phase 1 ownership and visibility metadata default values.
-        document.owner_id = "system"
-        document.visibility = DocumentVisibility.PRIVATE
+        document.owner_id = user_id
+        document.uploader_email = uploader_email
+        document.uploader_name = uploader_name
         self._repository.add(document)
 
         embedded_chunks_count = await self._processing_pipeline.process(document)
@@ -107,11 +125,17 @@ class DocumentService:
     async def delete_document(
         self,
         document_id: UUID,
+        user_id: str | None = None,
+        is_admin: bool = False,
     ) -> bool:
 
         document = self._repository.get_by_id(document_id)
 
         if not document:
+            return False
+
+        # Check permissions: only uploader or admin can delete
+        if not is_admin and document.owner_id != user_id:
             return False
 
         await self._storage_service.delete(document.storage_key)
@@ -122,4 +146,25 @@ class DocumentService:
         document = self._repository.get_by_id(document_id)
         if document is None:
             return None
+        return DocumentMapper.to_response(document)
+
+    async def update_document_visibility(
+        self,
+        document_id: UUID,
+        visibility: DocumentVisibility,
+        user_id: str | None = None,
+        is_admin: bool = False,
+    ) -> DocumentResponse | None:
+        document = self._repository.get_by_id(document_id)
+
+        if not document:
+            return None
+
+        # Check permissions: only uploader or admin can update visibility
+        if not is_admin and document.owner_id != user_id:
+            return None
+
+        document.visibility = visibility
+        self._repository.update(document)
+
         return DocumentMapper.to_response(document)

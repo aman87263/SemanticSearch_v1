@@ -16,4 +16,6 @@ class DocumentResponse(BaseModel):
     uploadedAt: datetime
     chunkCount: int | None = None
     owner_id: str | None = None
+    uploader_email: str | None = None
+    uploader_name: str | None = None
     visibility: DocumentVisibility = DocumentVisibility.PRIVATE

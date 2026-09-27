@@ -15,7 +15,15 @@ class IDocumentRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_hash(self, file_hash: str) -> Document | None:
+    def get_by_hash_and_owner(self, file_hash: str, owner_id: str) -> Document | None:
+        pass
+
+    @abstractmethod
+    def get_by_owner(self, owner_id: str) -> list[Document]:
+        pass
+
+    @abstractmethod
+    def get_public(self) -> list[Document]:
         pass
 
     @abstractmethod

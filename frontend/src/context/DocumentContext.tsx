@@ -20,14 +20,27 @@ export function DocumentProvider({
             return;
         }
 
-        void refreshDocuments();
+        refreshDocuments().then(() => {
+            // refreshDocuments handles its own setDocuments
+        });
     }, [isAuthenticated]);
 
-    async function uploadDocument(file: File): Promise<void> {
+    // Clear documents when logged out
+    useEffect(() => {
+        if (!isAuthenticated) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setDocuments([]);
+        }
+    }, [isAuthenticated]);
+
+    async function uploadDocument(
+        file: File,
+        visibility: "PRIVATE" | "PUBLIC" = "PRIVATE"
+    ): Promise<void> {
         setLoading(true);
 
         try {
-            const result = await documentService.uploadDocument(file);
+            const result = await documentService.uploadDocument(file, visibility);
 
             setDocuments((prev) => {
                 const exists = prev.some(
@@ -71,6 +84,38 @@ export function DocumentProvider({
         }
     };
 
+    const updateDocumentVisibility = async (
+        documentId: string,
+        visibility: "PRIVATE" | "PUBLIC"
+    ) => {
+        const previousDocuments = documents;
+
+        setDocuments((prev) =>
+            prev.map((document) =>
+                document.id === documentId
+                    ? { ...document, visibility }
+                    : document
+            )
+        );
+
+        try {
+            const updatedDoc = await documentService.updateDocumentVisibility(
+                documentId,
+                visibility
+            );
+
+            setDocuments((prev) =>
+                prev.map((document) =>
+                    document.id === documentId ? updatedDoc : document
+                )
+            );
+        } catch (error) {
+            setDocuments(previousDocuments);
+            console.error(error);
+            throw error;
+        }
+    };
+
     async function refreshDocuments() {
         try {
             const loadedDocuments = await documentService.getDocuments();
@@ -87,6 +132,7 @@ export function DocumentProvider({
                 loading,
                 uploadDocument,
                 deleteDocument,
+                updateDocumentVisibility,
                 refreshDocuments,
             }}
         >

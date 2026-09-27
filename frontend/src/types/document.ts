@@ -4,6 +4,8 @@ export type DocumentStatus =
     | "completed"
     | "failed";
 
+export type DocumentVisibility = "PRIVATE" | "PUBLIC";
+
 export interface Document {
     id: string;          // UUID
     name: string;        // Original filename
@@ -13,4 +15,8 @@ export interface Document {
     chunkCount?: number;
     progress: number;
     fileHash?: string;   // Returned by backend
+    owner_id?: string;   // Document owner
+    uploaderEmail?: string;
+    uploaderName?: string;
+    visibility: DocumentVisibility;
 }
