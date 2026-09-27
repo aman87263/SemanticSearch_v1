@@ -102,13 +102,25 @@ class PgVectorStore(IVectorStore):
                 OR chunks.document_id = %(document_id)s::uuid
             )
             """
-        else:
-            # Regular users can only see their own documents
+        elif user_id:
+            # Authenticated users can see their own private documents AND public documents
             where_clause = """
             WHERE (
                 (%(document_id)s::uuid IS NULL
                 OR chunks.document_id = %(document_id)s::uuid)
-                AND documents.owner_id = %(user_id)s
+                AND (
+                    documents.owner_id = %(user_id)s
+                    OR documents.visibility = 'PUBLIC'
+                )
+            )
+            """
+        else:
+            # Anonymous users can only see public documents
+            where_clause = """
+            WHERE (
+                (%(document_id)s::uuid IS NULL
+                OR chunks.document_id = %(document_id)s::uuid)
+                AND documents.visibility = 'PUBLIC'
             )
             """
 

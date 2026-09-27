@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from app.schemas.document.entities.document import Document
+from app.schemas.document.entities.document import Document, DocumentVisibility
 from app.db.repositories.interfaces.document_repository import IDocumentRepository
 
 
@@ -30,6 +30,9 @@ class MemoryDocumentRepository(IDocumentRepository):
 
     def get_by_owner(self, owner_id: str):
         return [document for document in self._documents if document.owner_id == owner_id]
+
+    def get_public(self):
+        return [document for document in self._documents if document.visibility == DocumentVisibility.PUBLIC]
 
     def add(self, document):
         self._documents.append(document)

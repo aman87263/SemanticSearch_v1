@@ -2,12 +2,15 @@ import { useRef, useState } from "react";
 
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CircularProgress from "@mui/material/CircularProgress";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
 import {
     Box,
     Button,
     Paper,
     Typography,
-    Alert
+    Alert,
+    FormGroup,
 } from "@mui/material";
 
 import { useDocuments } from "../../hooks/useDocuments";
@@ -34,6 +37,7 @@ export default function UploadZone() {
     const { uploadDocument, loading } = useDocuments();
     const [isDragging, setIsDragging] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isPublic, setIsPublic] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,9 +77,12 @@ export default function UploadZone() {
         }
 
         try {
-            await uploadDocument(file);
+            await uploadDocument(file, isPublic ? "PUBLIC" : "PRIVATE");
         } catch (err) {
-            const message = err instanceof Error ? err.message : "Upload failed. Please try again.";
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Upload failed. Please try again.";
             setError(message);
         }
     }
@@ -126,6 +133,25 @@ export default function UploadZone() {
                 <Alert severity="error" sx={{ mb: 2, textAlign: "left" }}>
                     {error}
                 </Alert>
+            )}
+
+            {!loading && (
+                <FormGroup sx={{ mb: 3, justifyContent: "center" }}>
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={isPublic}
+                                onChange={(e) => setIsPublic(e.target.checked)}
+                                color="primary"
+                            />
+                        }
+                        label={
+                            <Typography variant="body2" color="text.secondary">
+                                Make this document public (visible to all users)
+                            </Typography>
+                        }
+                    />
+                </FormGroup>
             )}
 
             {loading ? (

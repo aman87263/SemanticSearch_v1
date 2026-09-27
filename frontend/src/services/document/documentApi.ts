@@ -18,8 +18,9 @@ interface DocumentApiResponse {
     processing_progress: number;
     uploadedAt: string;
     chunkCount?: number | null;
-    uploaderEmail?: string;
-    uploaderName?: string;
+    uploader_email?: string;
+    uploader_name?: string;
+    visibility: "PRIVATE" | "PUBLIC";
 }
 
 interface UploadDocumentApiResponse {
@@ -36,8 +37,9 @@ function mapDocument(document: DocumentApiResponse): Document {
         progress: document.progress,
         uploadedAt: new Date(document.uploadedAt),
         chunkCount: document.chunkCount ?? undefined,
-        uploaderEmail: document.uploaderEmail,
-        uploaderName: document.uploaderName,
+        uploaderEmail: document.uploader_email,
+        uploaderName: document.uploader_name,
+        visibility: document.visibility,
     };
 }
 
@@ -45,15 +47,17 @@ export async function getDocuments(): Promise<Document[]> {
     const response = await apiRequest<ApiResponse<DocumentApiResponse[]>>(
         "/documents"
     );
-
+    // console.log("getDocuments response:", response.data?.map(mapDocument));
     return response.data?.map(mapDocument) ?? [];
 }
 
 export async function uploadDocuments(
-    file: File
+    file: File,
+    visibility: "PRIVATE" | "PUBLIC" = "PRIVATE"
 ): Promise<UploadDocumentResponse> {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("visibility", visibility);
 
     const response = await apiRequest<ApiResponse<UploadDocumentApiResponse>>(
         "/documents",
@@ -71,6 +75,28 @@ export async function uploadDocuments(
         outcome: response.data.outcome,
         document: mapDocument(response.data.document),
     };
+}
+
+export async function updateDocumentVisibility(
+    documentId: string,
+    visibility: "PRIVATE" | "PUBLIC"
+): Promise<Document> {
+    const response = await apiRequest<ApiResponse<DocumentApiResponse>>(
+        `/documents/${documentId}/visibility`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ visibility }),
+        }
+    );
+
+    if (!response.data) {
+        throw new Error("Update visibility response did not include document data.");
+    }
+
+    return mapDocument(response.data);
 }
 
 export async function deleteDocument(

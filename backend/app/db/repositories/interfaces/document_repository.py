@@ -23,6 +23,10 @@ class IDocumentRepository(ABC):
         pass
 
     @abstractmethod
+    def get_public(self) -> list[Document]:
+        pass
+
+    @abstractmethod
     def add(self, document: Document) -> None:
         pass
 

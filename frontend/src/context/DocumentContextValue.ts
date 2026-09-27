@@ -5,8 +5,15 @@ import type { Document } from "../types/document";
 export interface DocumentContextType {
     documents: Document[];
     loading: boolean;
-    uploadDocument(file: File): Promise<void>;
+    uploadDocument(
+        file: File,
+        visibility?: "PRIVATE" | "PUBLIC"
+    ): Promise<void>;
     deleteDocument(id: string): Promise<void>;
+    updateDocumentVisibility(
+        documentId: string,
+        visibility: "PRIVATE" | "PUBLIC"
+    ): Promise<void>;
     refreshDocuments(): Promise<void>;
 }
 

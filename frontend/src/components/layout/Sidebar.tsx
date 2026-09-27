@@ -27,15 +27,14 @@ import { getKeycloakLogoutUrl, redirectToKeycloakLogin } from "../../config/keyc
 import { useAuth } from "../../context/useAuth";
 import { apiRequest } from "../../services/http/httpClient";
 
-const API_BASE_URL =
-    (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-    "http://localhost:8000/api";
-
 interface UserInfo {
     user_id: string;
     roles: string[];
     authenticated: boolean;
     provider: string;
+    preferred_username: string;
+    email?: string;
+    name?: string;
 }
 
 export default function Sidebar() {
@@ -57,17 +56,10 @@ export default function Sidebar() {
         }
     }, [isAuthenticated]);
 
-    interface UserInfo {
-        user_id: string;
-        roles: string[];
-        authenticated: boolean;
-        provider: string;
-    }
-
     const handleLogout = async () => {
         // First, call backend to invalidate server-side session and clear HttpOnly cookie
         try {
-            await fetch(`${API_BASE_URL}/auth/logout`, {
+            await fetch("/api/auth/logout", {
                 method: "POST",
                 credentials: "include",
             });
@@ -145,14 +137,14 @@ export default function Sidebar() {
 
                 {isAuthenticated && userInfo && (
                     <Box sx={{ px: 2, py: 1 }}>
-                        <Tooltip title={userInfo.roles.join(", ")}>
+                        <Tooltip title={userInfo.roles.includes("ADMIN") ? "Administrator" : "User"}>
                             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                 <Avatar variant="rounded" sx={{ width: 32, height: 32 }}>
                                     <PersonIcon fontSize="small" />
                                 </Avatar>
                                 <Box>
                                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                        {userInfo.email || userInfo.preferred_username || userInfo.user_id}
+                                        {userInfo.preferred_username || userInfo.name || userInfo.email || "Unknown User"  }
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary">
                                         {userInfo.roles.includes("ADMIN") ? "Administrator" : "User"}

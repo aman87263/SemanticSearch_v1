@@ -189,17 +189,31 @@ def get_current_user(
     token = _extract_bearer_token(authorization)
 
     if not token:
-        raise HTTPException(
-            status_code=401,
-            detail="Authentication required",
+        # Return unauthenticated user instead of raising
+        return CurrentUser(
+            user_id="",
+            preferred_username=None,
+            name=None,
+            email=None,
+            roles=[],
+            authenticated=False,
+            auth_header=None,
+            identity_provider="anonymous",
         )
 
     claims = _decode_claims_from_keycloak(token)
 
     if not claims:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authentication token",
+        # Return unauthenticated user instead of raising
+        return CurrentUser(
+            user_id="",
+            preferred_username=None,
+            name=None,
+            email=None,
+            roles=[],
+            authenticated=False,
+            auth_header=None,
+            identity_provider="anonymous",
         )
 
     user_id = (
@@ -208,9 +222,15 @@ def get_current_user(
     )
 
     if not user_id:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authentication token",
+        return CurrentUser(
+            user_id="",
+            preferred_username=None,
+            name=None,
+            email=None,
+            roles=[],
+            authenticated=False,
+            auth_header=None,
+            identity_provider="anonymous",
         )
 
     # Keycloak realm roles
@@ -299,3 +319,15 @@ def require_admin(
         )
 
     return current_user
+
+
+def get_current_user_optional(
+    current_user: Annotated[
+        CurrentUser | None,
+        Depends(get_current_user),
+    ],
+) -> CurrentUser | None:
+    """Optional authentication - returns user if authenticated, None otherwise"""
+    if current_user and current_user.authenticated:
+        return current_user
+    return None

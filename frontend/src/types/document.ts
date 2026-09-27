@@ -4,6 +4,8 @@ export type DocumentStatus =
     | "completed"
     | "failed";
 
+export type DocumentVisibility = "PRIVATE" | "PUBLIC";
+
 export interface Document {
     id: string;          // UUID
     name: string;        // Original filename
@@ -15,4 +17,5 @@ export interface Document {
     fileHash?: string;   // Returned by backend
     uploaderEmail?: string;
     uploaderName?: string;
+    visibility: DocumentVisibility;
 }
