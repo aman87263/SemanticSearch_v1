@@ -17,19 +17,21 @@ export function DocumentProvider({
 
     useEffect(() => {
         if (!isAuthenticated) {
-            setDocuments([]);
             return;
         }
 
-        void refreshDocuments();
+        refreshDocuments().then(() => {
+            // refreshDocuments handles its own setDocuments
+        });
     }, [isAuthenticated]);
 
-    // Also fetch on mount if already authenticated (e.g., after session restore)
+    // Clear documents when logged out
     useEffect(() => {
-        if (isAuthenticated && documents.length === 0) {
-            void refreshDocuments();
+        if (!isAuthenticated) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setDocuments([]);
         }
-    }, []);
+    }, [isAuthenticated]);
 
     async function uploadDocument(
         file: File,

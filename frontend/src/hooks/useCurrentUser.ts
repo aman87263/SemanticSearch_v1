@@ -17,15 +17,33 @@ export function useCurrentUser(): UserInfo | null {
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
     useEffect(() => {
-        if (isAuthenticated) {
-            apiRequest<{ success: boolean; data: UserInfo }>("/auth/me")
-                .then(response => {
-                    if (response.success && response.data) {
-                        setUserInfo(response.data);
-                    }
-                })
-                .catch(() => setUserInfo(null));
-        } else {
+        if (!isAuthenticated) {
+            return;
+        }
+
+        let mounted = true;
+
+        apiRequest<{ success: boolean; data: UserInfo }>("/auth/me")
+            .then(response => {
+                if (mounted && response.success && response.data) {
+                    setUserInfo(response.data);
+                }
+            })
+            .catch(() => {
+                if (mounted) {
+                    setUserInfo(null);
+                }
+            });
+
+        return () => {
+            mounted = false;
+        };
+    }, [isAuthenticated]);
+
+    // Clear user info when logged out
+    useEffect(() => {
+        if (!isAuthenticated) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setUserInfo(null);
         }
     }, [isAuthenticated]);
