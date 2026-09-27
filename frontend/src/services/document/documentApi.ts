@@ -18,6 +18,7 @@ interface DocumentApiResponse {
     processing_progress: number;
     uploadedAt: string;
     chunkCount?: number | null;
+    owner_id?: string | null;
     uploader_email?: string;
     uploader_name?: string;
     visibility: "PRIVATE" | "PUBLIC";
@@ -37,6 +38,7 @@ function mapDocument(document: DocumentApiResponse): Document {
         progress: document.progress,
         uploadedAt: new Date(document.uploadedAt),
         chunkCount: document.chunkCount ?? undefined,
+        owner_id: document.owner_id ?? undefined,
         uploaderEmail: document.uploader_email,
         uploaderName: document.uploader_name,
         visibility: document.visibility,

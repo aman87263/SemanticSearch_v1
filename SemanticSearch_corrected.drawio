@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-09-27T10:00:00Z" agent="5.0 (Windows)" etag="architecture" version="25.0.4">
+
+  <diagram id="architecture-overview" name="System Architecture">
+
+    <mxGraphModel dx="1000" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="3200" math="0" shadow="0">
+
+      <root>
+
+        <mxCell id="0" />
+
+        <mxCell id="1" parent="0" />
+
+
+
+        <mxCell id="layer-ext" value="EXTERNAL / INFRASTRUCTURE LAYER" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=10;fillColor=#E8F0FE;strokeColor=#1A73E8;fontSize=14;fontColor=#1A73E8;" vertex="1" parent="1">
+
+          <mxGeometry x="50" y="50" width="2300" height="300" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="nginx" value="NGINX REVERSE PROXY&#10;Port 80/443&#10;SSL Termination&#10;Rate Limiting&#10;CORS Headers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4EDDA;strokeColor=#28A745;fontSize=12;fontColor=#155724;" vertex="1" parent="layer-ext">
+
+          <mxGeometry x="100" y="80" width="350" height="180" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="keycloak" value="KEYCLOAK IDENTITY PROVIDER&#10;Port 9090 (External) / 8080 (Internal)&#10;Realm: semanticsearch&#10;Client: semanticsearch-web&#10;OIDC / SAML / LDAP&#10;User Federation&#10;Roles: ADMIN, USER&#10;Tokens: JWT (RS256)&#10;JWKS Endpoint" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3CD;strokeColor=#FFC107;fontSize=12;fontColor=#856404;" vertex="1" parent="layer-ext">
+
+          <mxGeometry x="500" y="80" width="400" height="220" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="postgres" value="POSTGRESQL 16 + PGVECTOR&#10;Port 5432&#10;Database: semanticsearch&#10;Tables:&#10;  - documents (id, name, owner_id, visibility, ...)&#10;  - document_chunks (embedding vector(384))&#10;  - Keycloak tables (realm, users, roles)&#10;Extensions: vector, uuid-ossp&#10;HNSW Index on embeddings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D6D8DB;strokeColor=#336791;fontSize=12;fontColor=#1B3A5C;" vertex="1" parent="layer-ext">
+
+          <mxGeometry x="950" y="80" width="400" height="220" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="storage" value="OBJECT STORAGE&#10;Local Filesystem / S3 Compatible&#10;Path: /app/storage/documents/&#10;Original files + processed chunks&#10;Content-Addressable (SHA256)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2E3E5;strokeColor=#383D41;fontSize=12;fontColor=#1B1E21;" vertex="1" parent="layer-ext">
+
+          <mxGeometry x="1400" y="80" width="350" height="180" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="docker-net" value="DOCKER NETWORK (semanticsearch_default)&#10;Service Discovery via DNS&#10;Internal Ports:&#10;  - backend: 8000&#10;  - frontend: 5173&#10;  - keycloak: 8080&#10;  - postgres: 5432" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8F9FA;strokeColor=#6C757D;fontSize=11;fontColor=#495057;dashed=1;" vertex="1" parent="layer-ext">
+
+          <mxGeometry x="1800" y="80" width="400" height="180" as="geometry" />
+
+        </mxCell>
+
+
+
+        <mxCell id="layer-fe" value="FRONTEND LAYER (React 18 + TypeScript + Vite + MUI)" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=10;fillColor=#F3E5F5;strokeColor=#9C27B0;fontSize=14;fontColor=#7B1FA2;" vertex="1" parent="1">
+
+          <mxGeometry x="50" y="400" width="2300" height="800" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="routing" value="APP ROUTING (react-router-dom v6)&#10;BrowserRouter&#10;Routes:&#10;  /login → LoginPage&#10;  /login/callback → LoginCallbackPage&#10;  /chat → ChatPage (Protected)&#10;  /documents → DocumentsPage (Protected)&#10;  /search → SearchPage (Protected)&#10;  /settings → SettingsPage (Protected)&#10;  \* → Redirect to /chat&#10;ProtectedRoute wrapper with AuthContext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8DAEF;strokeColor=#9C27B0;fontSize=11;fontColor=#7B1FA2;" vertex="1" parent="layer-fe">
+
+          <mxGeometry x="100" y="450" width="450" height="200" as="geometry" />
+
+        </mxCell>
+
+
+
+        <mxCell id="auth-ctx" value="AuthContext (AuthContext.tsx)&#10;────────────────────────&#10;State:&#10;  isAuthenticated: boolean&#10;  (synced via auth-changed events)&#10;Functions:&#10;  restoreSession() → /auth/refresh&#10;  notifyAuthChanged()&#10;Events:&#10;  auth-changed (window event)&#10;  storage (cross-tab sync)&#10;Session Management:&#10;  HttpOnly Cookie (semanticsearch_session)&#10;  In-memory Access Token (JWT)&#10;  Keycloak PKCE Flow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#E91E63;fontSize=11;fontColor=#C2185B;" vertex="1" parent="layer-fe">
+
+          <mxGeometry x="100" y="680" width="450" height="220" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="use-auth" value="useAuth Hook (useAuth.ts)&#10;────────────────────────&#10;Returns: { isAuthenticated }&#10;Sync via useSyncExternalStore&#10;Subscribes to auth-changed events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#E91E63;fontSize=11;fontColor=#C2185B;" vertex="1" parent="layer-fe">
+
+          <mxGeometry x="580" y="680" width="300" height="120" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="use-current-user" value="useCurrentUser Hook (useCurrentUser.ts)&#10;────────────────────────&#10;Returns: UserInfo | null&#10;Calls /auth/me on auth change&#10;Auto-clears on logout&#10;Fields: user_id, roles, email, name,&#10;  preferred_username, provider" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#E91E63;fontSize=11;fontColor=#C2185B;" vertex="1" parent="layer-fe">
+
+          <mxGeometry x="580" y="820" width="300" height="140" as="geometry" />
+
+        </mxCell>
+
+
+
+
+
+        <mxCell id="doc-svc-fe" value="documentService.ts (Frontend Service)&#10;───────────────────────&#10;Functions:&#10;  getDocuments() → GET /documents&#10;  uploadDocument(file, visibility) → POST /documents&#10;  deleteDocument(id) → DELETE /documents/:id&#10;  updateDocumentVisibility(id, vis) → PATCH /documents/:id/visibility&#10;Uses apiRequest with credentials: 'include'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1C4E9;strokeColor=#7B1FA2;fontSize=11;fontColor=#7B1FA2;" vertex="1" parent="layer-fe">
+
+          <mxGeometry x="900" y="450" width="400" height="200" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="doc-api-fe" value="documentApi.ts (API Layer)&#10;───────────────────────&#10;Maps API Response → Document Type&#10;mapDocument(): API → Document&#10;FormData for uploads&#10;JSON for PATCH/DELETE&#10;Error parsing with friendly messages" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1C4E9;strokeColor=#7B1FA2;fontSize=11;fontColor=#7B1FA2;" vertex="1" parent="layer-fe">
+
+          <mxGeometry x="900" y="680" width="400" height="180" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="http-client" value="apiRequest / httpClient.ts&#10;───────────────────────&#10;Base URL: /api (proxied by Vite)&#10;credentials: 'include' (cookies)&#10;Headers: Origin, Referer, Content-Type&#10;Auto JSON parsing&#10;Error handling &amp; parsing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1C4E9;strokeColor=#7B1FA2;fontSize=11;fontColor=#7B1FA2;" vertex="1" parent="layer-fe">
+
+          <mxGeometry x="900" y="880" width="400" height="140" as="geometry" />
+
+        </mxCell>
+
+
+
+
+
+        <mxCell id="layer-be" value="BACKEND LAYER (FastAPI + Python 3.12 + Uvicorn + debugpy)" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=10;fillColor=#E3F2FD;strokeColor=#2196F3;fontSize=14;fontColor=#1565C0;" vertex="1" parent="1">
+
+          <mxGeometry x="50" y="1250" width="2300" height="1100" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="main-app" value="main.py (FastAPI App)&#10;───────────────────────&#10;Middleware Stack:&#10;  1. CORSMiddleware&#10;  2. SessionValidationMiddleware&#10;  3. CSRFProtectionMiddleware&#10;Routers:&#10;  /api/auth → Auth Router&#10;  /api/documents → Document Router&#10;  /api/chat → Chat Router&#10;  /api/search → Search Router&#10;  /api/health → Health Check&#10;Debug: debugpy on Port 5678" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#2196F3;fontSize=11;fontColor=#1565C0;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="100" y="1300" width="500" height="220" as="geometry" />
+
+        </mxCell>
+
+        
+
+
+
+        <mxCell id="middleware" value="MIDDLEWARE STACK&#10;───────────────────────&#10;1. SessionValidationMiddleware&#10;   - Skip: /auth/\*, /api/health, /api/auth/refresh&#10;   - Reads HttpOnly Cookie (semanticsearch_session)&#10;   - Validates session in SESSION_STORE&#10;   - Attaches session to request.state&#10;2. CSRFProtectionMiddleware&#10;   - POST/PUT/PATCH/DELETE&#10;   - Validates Origin/Referer headers&#10;   - Allowed: localhost:5173, localhost:8080" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#2196F3;fontSize=11;fontColor=#1565C0;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="100" y="1550" width="500" height="200" as="geometry" />
+
+        </mxCell>
+
+        <mxCell id="vite-proxy" value="VITE DEV PROXY (vite.config.ts)&#10;───────────────────────&#10;/api → http\://localhost:8000&#10;changeOrigin: true&#10;Same-Origin for Cookies&#10;HMR on Port 5173" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#AB47BC;fontSize=11;fontColor=#7B1FA2;" vertex="1" parent="layer-fe">
+
+          <mxGeometry x="1350" y="450" width="350" height="140" as="geometry" />
+
+        </mxCell>
+
+
+
+        <mxCell id="auth-router" value="Auth Router (auth.py)&#10;───────────────────────&#10;POST /api/auth/session&#10;   - Dev: Creates session from code/verifier&#10;   - Prod: Exchanges code with Keycloak&#10;   - Stores refresh_token in SESSION_STORE&#10;   - Sets HttpOnly Cookie + returns access_token&#10;POST /api/auth/refresh&#10;   - Uses Cookie to find session&#10;   - Exchanges refresh_token with Keycloak&#10;   - Returns new access_token&#10;   - Mutex lock per session_id (prevents race)&#10;POST /api/auth/logout&#10;   - Revokes session, deletes cookie&#10;GET /api/auth/me&#10;   - Returns user info from JWT&#10;GET /api/auth/keycloak/config&#10;   - Returns Keycloak client config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#2196F3;fontSize=11;fontColor=#1565C0;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="650" y="1300" width="450" height="280" as="geometry" />
+
+        </mxCell>
+
+
+
+
+
+        <mxCell id="doc-router" value="Document Router (document.py)&#10;───────────────────────&#10;GET /api/documents&#10;   - Returns user's docs + public docs&#10;GET /api/documents/public&#10;   - Returns all PUBLIC docs (no auth)&#10;POST /api/documents&#10;   - Upload with visibility (PRIVATE/PUBLIC)&#10;   - FormData: file + visibility&#10;PATCH /api/documents/{id}/visibility&#10;   - Toggle PRIVATE ↔ PUBLIC (owner/admin)&#10;DELETE /api/documents/{id}&#10;   - Owner or Admin only (403 if not)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#2196F3;fontSize=11;fontColor=#1565C0;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="650" y="1600" width="450" height="280" as="geometry" />
+
+        </mxCell>
+
+        
+
+
+
+        <mxCell id="chat-router" value="Chat &amp; Search Routers&#10;───────────────────────&#10;POST /api/chat&#10;   - QuestionRequest {query, limit, doc_id}&#10;   - Optional auth (get_current_user_optional)&#10;   - Filters: owner_id + PUBLIC docs&#10;POST /api/search&#10;   - SearchRequest {query, limit, doc_id}&#10;   - Vector similarity search&#10;   - Filters by visibility + ownership" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#2196F3;fontSize=11;fontColor=#1565C0;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="1150" y="1300" width="450" height="200" as="geometry" />
+
+        </mxCell>
+
+        <mxCell id="ui-components" value="UI COMPONENTS (MUI v5)&#10;───────────────────────&#10;Layout:&#10;  Sidebar (Auth, Navigation, User Info)&#10;  MainLayout (Header + Content)&#10;Pages:&#10;  LoginPage / LoginCallbackPage&#10;  ChatPage (ChatInterface + Citations)&#10;  DocumentsPage (UploadZone + DocumentTable)&#10;  SearchPage / SettingsPage&#10;Components:&#10;  UploadZone (Drag&amp;Drop, Visibility Toggle)&#10;  DocumentTable + DocumentRow (Visibility Badge)&#10;  StatusChip, DocumentRow, CitationChip" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8DAEF;strokeColor=#9C27B0;fontSize=11;fontColor=#7B1FA2;" vertex="1" parent="layer-fe">
+
+
+
+<mxGeometry x="1350" y="620" width="450" height="300" as="geometry" />
+
+        </mxCell>
+
+        <mxCell id="auth-deps" value="Auth Dependencies (dependencies/auth.py)&#10;───────────────────────&#10;get_current_user() → CurrentUser&#10;   - Extracts Bearer token&#10;   - Validates JWT via Keycloak JWKS&#10;   - Returns CurrentUser (user_id, roles, email, etc.)&#10;get_current_user_optional() → CurrentUser | None&#10;   - Returns unauthenticated user if no token&#10;require_authenticated_user() → CurrentUser&#10;   - Raises 401 if not authenticated&#10;require_admin() → CurrentUser&#10;   - Raises 403 if not ADMIN role&#10;get_session_from_cookie() → Session&#10;   - Reads HttpOnly Cookie&#10;   - Validates against SESSION_STORE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#2196F3;fontSize=11;fontColor=#1565C0;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="1150" y="1520" width="450" height="240" as="geometry" />
+
+        </mxCell>
+
+
+
+        <mxCell id="session-store" value="SESSION_STORE (In-Memory Dict)&#10;──────────────────────&#10;Key: session_id (UUID)&#10;Value: Session{&#10;  user_id, roles, provider,&#10;  refresh_token, created_at,&#10;  revoked: bool&#10;}&#10;Mutex: \_refresh_locks dict per session&#10;⚠️ Dev only - Use Redis in Production" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#FF9800;fontSize=11;fontColor=#E65100;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="1650" y="1300" width="400" height="200" as="geometry" />
+
+        </mxCell>
+
+
+
+        <mxCell id="doc-svc-be" value="DocumentService (document_service.py)&#10;────────────────────────&#10;upload_document()&#10;   - Validate file (ext, size)&#10;   - Hash (SHA256) + Duplicate Check (per-user)&#10;   - Store file → Create Document Entity&#10;   - Processing Pipeline → Chunk + Embed&#10;   - Upsert to Vector Store&#10;get_documents(user_id, is_admin)&#10;   - Admin: all docs&#10;   - User: own + public&#10;   - Anonymous: public only&#10;update_document_visibility()&#10;   - Owner/Admin only&#10;delete_document()&#10;   - Delete file + chunks + vector embeddings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#2196F3;fontSize=11;fontColor=#1565C0;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="650" y="1900" width="450" height="300" as="geometry" />
+
+        </mxCell>
+
+        
+
+
+
+        <mxCell id="pipeline" value="DocumentProcessingPipeline&#10;───────────────────────&#10;1. Text Extraction (PyMuPDF, python-docx)&#10;2. Chunking (RecursiveChunker)&#10;   - chunk_size=1000, overlap=200&#10;3. Embedding (SentenceTransformers)&#10;   - all-MiniLM-L6-v2 (384 dim)&#10;4. Vector Store Upsert (pgvector)&#10;Status Tracking: UPLOADING→PROCESSING→COMPLETED/FAILED" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#2196F3;fontSize=11;fontColor=#1565C0;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="1150" y="1800" width="450" height="200" as="geometry" />
+
+        </mxCell>
+
+        <mxCell id="doc-ctx" value="DocumentContext (DocumentContext.tsx)&#10;────────────────────────&#10;State:&#10;  documents: Document[]&#10;  loading: boolean&#10;Functions:&#10;  uploadDocument(file, visibility)&#10;  deleteDocument(id)&#10;  updateDocumentVisibility(id, vis)&#10;  refreshDocuments()&#10;Auto-refresh on auth change&#10;Optimistic Updates for all mutations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1C4E9;strokeColor=#7B1FA2;fontSize=11;fontColor=#7B1FA2;" vertex="1" parent="layer-fe">
+
+          <mxGeometry x="100" y="920" width="450" height="200" as="geometry" />
+
+        </mxCell>
+
+
+
+
+
+        <mxCell id="vector-store" value="Vector Store (pgvector via PgVectorStore)&#10;───────────────────────&#10;Interface: IVectorStore&#10;upsert(chunks) → INSERT ON CONFLICT&#10;search(query_vector, limit, filters)&#10;   - HNSW Index (cosine similarity)&#10;   - Filters: document_id, user_id, is_admin&#10;   - PUBLIC docs visible to all&#10;   - Private docs: owner_id filter&#10;Table: document_chunks (embedding vector(384))" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#4CAF50;fontSize=11;fontColor=#2E7D32;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="1150" y="2020" width="450" height="220" as="geometry" />
+
+        </mxCell>
+
+        
+
+
+
+        <mxCell id="repos" value="REPOSITORY LAYER (IDocumentRepository)&#10;───────────────────────&#10;PostgresDocumentRepository&#10;   - add(), get_by_id(), get_all()&#10;   - get_by_owner(), get_public()&#10;   - get_by_hash_and_owner() (dedup)&#10;   - update(), delete()&#10;MemoryDocumentRepository (Dev/Test)&#10;Schema: documents + document_chunks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#4CAF50;fontSize=11;fontColor=#2E7D32;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="1650" y="1550" width="400" height="220" as="geometry" />
+
+        </mxCell>
+
+        <mxCell id="use-doc" value="useDocuments Hook (useDocuments.ts)&#10;────────────────────────&#10;Returns DocumentContext value&#10;Throws if used outside Provider" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1C4E9;strokeColor=#7B1FA2;fontSize=11;fontColor=#7B1FA2;" vertex="1" parent="layer-fe">
+
+<mxGeometry x="580" y="980" width="300" height="80" as="geometry" />
+
+        </mxCell>
+
+
+
+        <mxCell id="db-schema" value="DATABASE SCHEMA (PostgreSQL + pgvector)&#10;───────────────────────&#10;documents table:&#10;  id UUID PK, name, size, file_hash,&#10;  storage_key, uploaded_at, status,&#10;  progress, chunk_count, owner_id,&#10;  uploader_email, uploader_name,&#10;  visibility (PRIVATE/PUBLIC)&#10;document_chunks table:&#10;  id UUID PK, document_id FK,&#10;  chunk_index, text, token_count,&#10;  metadata JSONB, embedding vector(384)&#10;Indexes:&#10;  HNSW on embedding (cosine_ops)&#10;  Unique(document_id, chunk_index)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#4CAF50;fontSize=11;fontColor=#2E7D32;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="1650" y="1800" width="450" height="280" as="geometry" />
+
+        </mxCell>
+
+
+
+        <mxCell id="qa-svc" value="QuestionAnsweringService&#10;───────────────────────&#10;answer(query, limit, doc_id, user_id, is_admin)&#10;   1. RetrievalService.search()&#10;   2. Reranking (CrossEncoder)&#10;   3. LLM Generation (Ollama/OpenAI)&#10;   4. Citation Extraction&#10;Filters by visibility + ownership" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#2196F3;fontSize=11;fontColor=#1565C0;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="1150" y="2050" width="450" height="180" as="geometry" />
+
+        </mxCell>
+
+
+
+        <mxCell id="retrieval-svc" value="RetrievalService&#10;───────────────────────&#10;search(query, limit, user_id, is_admin)&#10;   - Embed query → VectorStore.search()&#10;   - Filters: user_id + PUBLIC + is_admin&#10;   - Returns RetrievedChunk list&#10;candidate_limit → rerank → limit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#2196F3;fontSize=11;fontColor=#1565C0;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="1150" y="2250" width="450" height="150" as="geometry" />
+
+        </mxCell>
+
+
+
+        <mxCell id="settings" value="SETTINGS &amp; CONFIGURATION&#10;───────────────────────&#10;YAML Configs (app/config/):&#10;  document.yaml (upload, chunking, duplicate)&#10;  storage.yaml (provider, path)&#10;  chunking.yaml (strategy, size, overlap)&#10;  embedding.yaml (provider, model)&#10;  vector_store.yaml (provider, db_url)&#10;  retrieval.yaml (limits, threshold)&#10;  reranking.yaml (enabled, model)&#10;  llm.yaml (provider, model, temp)&#10;Env Overrides via .env / Docker Compose" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8F9FA;strokeColor=#6C757D;fontSize=11;fontColor=#495057;" vertex="1" parent="layer-be">
+
+          <mxGeometry x="1650" y="2050" width="450" height="250" as="geometry" />
+
+        </mxCell>
+
+
+
+        
+
+        <mxCell id="edge-routing-keycloak" value="OIDC / PKCE" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#FFC107;strokeWidth=2;fontSize=10;dashed=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="routing" target="keycloak"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-routing-authctx" value="ProtectedRoute / AuthContext" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#7E57C2;strokeWidth=2;fontSize=10;dashed=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="routing" target="auth-ctx"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-authctx-useauth" value="auth state" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#7E57C2;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="auth-ctx" target="use-auth"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-authctx-currentuser" value="/auth/me" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#7E57C2;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="auth-ctx" target="use-current-user"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-docctx-usedoc" value="document state" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#43A047;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="doc-ctx" target="use-doc"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-usedoc-service" value="document actions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#43A047;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="use-doc" target="doc-svc-fe"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-service-api" value="API calls" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#43A047;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="doc-svc-fe" target="doc-api-fe"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-api-http" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#43A047;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="doc-api-fe" target="http-client"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-http-proxy" value="/api/*" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#2196F3;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="http-client" target="vite-proxy"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-proxy-main" value="/api/* → :8000" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#2196F3;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="vite-proxy" target="main-app"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-main-middleware" value="request pipeline" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="main-app" target="middleware"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-main-authrouter" value="/api/auth/*" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="main-app" target="auth-router"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-main-docrouter" value="/api/documents/*" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="main-app" target="doc-router"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-main-chatrouter" value="/api/chat + /api/search" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="main-app" target="chat-router"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-authrouter-keycloak" value="code exchange / refresh" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#FFC107;strokeWidth=2;fontSize=10;dashed=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="auth-router" target="keycloak"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-authdeps-keycloak" value="JWKS validation" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#FFC107;strokeWidth=2;fontSize=10;dashed=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="auth-deps" target="keycloak"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-authrouter-session" value="session / refresh token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#FFC107;strokeWidth=2;fontSize=10;dashed=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="auth-router" target="session-store"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-authdeps-session" value="session lookup" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#FFC107;strokeWidth=2;fontSize=10;dashed=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="auth-deps" target="session-store"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-docrouter-service" value="service calls" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#43A047;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="doc-router" target="doc-svc-be"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-docservice-repos" value="document CRUD" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#43A047;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="doc-svc-be" target="repos"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-docservice-storage" value="file storage" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#43A047;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="doc-svc-be" target="storage"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-docservice-pipeline" value="process document" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#43A047;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="doc-svc-be" target="pipeline"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-pipeline-vector" value="chunk + embedding upsert" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#00897B;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="pipeline" target="vector-store"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-vector-db" value="pgvector search" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#336791;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="vector-store" target="db-schema"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-repos-db" value="SQL persistence" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#336791;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="repos" target="db-schema"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-chat-qa" value="answer()" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8E24AA;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="chat-router" target="qa-svc"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-qa-retrieval" value="search()" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8E24AA;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="qa-svc" target="retrieval-svc"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-retrieval-vector" value="similarity search" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#00897B;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="retrieval-svc" target="vector-store"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-qa-llm" value="LLM/provider config" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8E24AA;strokeWidth=2;fontSize=10;dashed=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="qa-svc" target="settings"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-keycloak-postgres" value="Keycloak DB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#336791;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="keycloak" target="postgres"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-db-postgres" value="PostgreSQL 16 + pgvector" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#336791;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="db-schema" target="postgres"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-settings-services" value="config" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#607D8B;strokeWidth=2;fontSize=10;dashed=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="settings" target="doc-svc-be"><mxGeometry relative="1" as="geometry" /></mxCell><mxCell id="edge-settings-retrieval" value="config" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#607D8B;strokeWidth=2;fontSize=10;dashed=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="settings" target="retrieval-svc"><mxGeometry relative="1" as="geometry" /></mxCell></root>
+
+    </mxGraphModel>
+
+  </diagram>
+
+</mxfile>

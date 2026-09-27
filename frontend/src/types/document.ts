@@ -15,6 +15,7 @@ export interface Document {
     chunkCount?: number;
     progress: number;
     fileHash?: string;   // Returned by backend
+    owner_id?: string;   // Document owner
     uploaderEmail?: string;
     uploaderName?: string;
     visibility: DocumentVisibility;

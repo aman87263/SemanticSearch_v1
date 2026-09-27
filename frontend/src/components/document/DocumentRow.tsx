@@ -4,6 +4,7 @@ import {
     TableRow,
     Typography,
     Chip,
+    Box,
 } from "@mui/material";
 
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -62,10 +63,10 @@ export default function DocumentRow({
             </TableCell>
 
             <TableCell>
-                <Typography variant="body2" display="flex" alignItems="center" gap={1}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <PersonIcon fontSize="small" color="action" />
-                    {uploaderName}
-                </Typography>
+                    <Typography variant="body2">{uploaderName}</Typography>
+                </Box>
             </TableCell>
             <TableCell>
                 {uploaderEmail}
