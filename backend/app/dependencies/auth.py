@@ -4,8 +4,8 @@ import json
 import os
 from typing import Annotated, Optional
 
+
 import jwt
-import redis
 from fastapi import Depends, Header, HTTPException, Request
 from jwt import PyJWKClient
 from pydantic import BaseModel
@@ -25,17 +25,27 @@ REDIS_URL = os.getenv("REDIS_URL")
 SESSION_TTL_SECONDS = int(os.getenv("SESSION_MAX_AGE_SECONDS", "604800"))
 
 
+def _get_redis_client():
+    """Lazily import and return redis client class."""
+    try:
+        import redis
+        return redis
+    except ImportError:
+        return None
+
+
 class SessionStore:
     """Abstract session store supporting both in-memory (dev) and Redis (prod)."""
 
     def __init__(self):
-        self._redis: Optional[redis.Redis] = None
+        self._redis_module = _get_redis_client()
+        self._redis: Optional["redis.Redis"] = None  # type: ignore[name-defined]
         self._memory_store: dict[str, dict[str, object]] = {}
-        self._use_redis = REDIS_URL is not None
+        self._use_redis = REDIS_URL is not None and self._redis_module is not None
 
         if self._use_redis:
             try:
-                self._redis = redis.from_url(
+                self._redis = self._redis_module.from_url(  # type: ignore[attr-defined]
                     REDIS_URL,
                     encoding="utf-8",
                     decode_responses=True,
@@ -47,7 +57,7 @@ class SessionStore:
                 self._use_redis = False
                 self._redis = None
 
-    def _get_redis(self) -> Optional[redis.Redis]:
+    def _get_redis(self) -> Optional["redis.Redis"]:  # type: ignore[name-defined]
         if self._use_redis and self._redis:
             try:
                 self._redis.ping()

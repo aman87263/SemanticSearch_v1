@@ -10,3 +10,4 @@ python-docx
 PyJWT>=2.8.0
 debugpy>=1.8.0
 redis>=5.0.0
+httpx>=0.27.0
