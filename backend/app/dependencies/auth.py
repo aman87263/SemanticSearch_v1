@@ -22,7 +22,8 @@ SESSION_COOKIE_NAME = os.getenv(
 
 # Redis configuration for production session store
 REDIS_URL = os.getenv("REDIS_URL")
-SESSION_TTL_SECONDS = int(os.getenv("SESSION_MAX_AGE_SECONDS", "604800"))
+SESSION_MAX_AGE_SECONDS = int(os.getenv("SESSION_MAX_AGE_SECONDS", "604800"))
+SESSION_TTL_SECONDS = SESSION_MAX_AGE_SECONDS
 
 
 def _get_redis_client():
