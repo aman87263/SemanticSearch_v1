@@ -22,6 +22,7 @@ from app.dependencies.auth import (
     KEYCLOAK_TOKEN_URL,
     KEYCLOAK_CLIENT_ID,
     SESSION_COOKIE_NAME,
+    SESSION_MAX_AGE_SECONDS,
     SESSION_STORE,
     CurrentUser,
     get_current_user,
@@ -216,7 +217,7 @@ async def create_session(
     if request is None or not request.code:
         session_id = secrets.token_urlsafe(32)
         now = datetime.now(timezone.utc).isoformat()
-        SESSION_STORE[session_id] = {
+        session_data = {
             "session_id": session_id,
             "user_id": "user-123",
             "provider": "keycloak",
@@ -230,6 +231,7 @@ async def create_session(
                 "id_token": None,
             },
         }
+        SESSION_STORE.set(session_id, session_data, SESSION_MAX_AGE_SECONDS)
         response.set_cookie(
             key=SESSION_COOKIE_NAME,
             value=session_id,
@@ -317,7 +319,7 @@ async def create_session(
 
     access_token_expires_at = now + timedelta(seconds=expires_in)
 
-    SESSION_STORE[session_id] = {
+    session_data = {
         "session_id": session_id,
         "user_id": str(user_id),
         "provider": "keycloak",
@@ -331,6 +333,7 @@ async def create_session(
             "id_token": id_token,
         },
     }
+    SESSION_STORE.set(session_id, session_data, SESSION_MAX_AGE_SECONDS)
 
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
@@ -477,6 +480,9 @@ async def refresh_session(
 
     session["last_activity_at"] = now.isoformat()
 
+    # Save updated session back to store
+    SESSION_STORE.set(session_id, session, SESSION_MAX_AGE_SECONDS)
+
     return success(
         data={
             "authenticated": True,
@@ -503,16 +509,7 @@ def logout_session(
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
 
     if session_id:
-
-        session = SESSION_STORE.get(session_id)
-
-        if session:
-            session["revoked"] = True
-
-        SESSION_STORE.pop(
-            session_id,
-            None,
-        )
+        SESSION_STORE.delete(session_id)
 
     response.delete_cookie(
         key=SESSION_COOKIE_NAME,

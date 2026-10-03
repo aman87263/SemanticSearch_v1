@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/useAuth";
+import { useAuth } from "./useAuth";
 import { apiRequest } from "../services/http/httpClient";
 
 interface UserInfo {

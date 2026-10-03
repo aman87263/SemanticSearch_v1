@@ -360,3 +360,37 @@ const handleLogout = async () => {
 **The session cookie deletion is what immediately breaks subsequent API calls** - even if the access token is still valid in memory, the middleware rejects the request because the session cookie is gone.
 
 This is by design: **logout = server-side session termination**, not just client-side token clearing.
+
+
+
+                    React Router
+                         │
+             ┌───────────┼───────────┐
+             ▼           ▼           ▼
+          /login       /chat      /documents
+                         │
+                         ▼
+                 React Components
+                         │
+                         ▼
+                Context Providers
+              ┌────────┼─────────┐
+              ▼        ▼         ▼
+          AuthContext ChatContext DocumentContext
+              │        │         │
+              └────────┼─────────┘
+                       ▼
+                    Services
+              ┌────────┼─────────┐
+              ▼        ▼         ▼
+          authService chatService documentService
+              │        │         │
+              └────────┼─────────┘
+                       ▼
+                    api.ts
+                       │
+                       ▼
+                  httpClient.ts
+                       │
+                       ▼
+                  HTTP / Backend

@@ -1,5 +1,32 @@
 services:
 
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   backend:
     build:
       context: ./backend
@@ -10,10 +37,32 @@ services:
       GROQ_API_KEY: ${GROQ_API_KEY:?Set GROQ_API_KEY}
       UPLOAD_DIRECTORY: /tmp/uploads
       CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS}
-    ports:
-      - "8000:8000"
+      # Keycloak Configuration
+      # Verify the public issuer embedded in tokens rather than Docker's
+      # internal service URL.
+      KEYCLOAK_BASE_URL: ${KEYCLOAK_URL:?Set KEYCLOAK_URL}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-semanticsearch}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-semanticsearch-web}
+      KEYCLOAK_AUDIENCE: ${KEYCLOAK_AUDIENCE:-semanticsearch-web}
+      KEYCLOAK_JWKS_TIMEOUT_SEC: ${KEYCLOAK_JWKS_TIMEOUT_SEC:-5}
+      KEYCLOAK_JWKS_VERIFY_ENABLED: ${KEYCLOAK_JWKS_VERIFY_ENABLED:-true}
+      KEYCLOAK_REFRESH_EXCHANGE_ENABLED: ${KEYCLOAK_REFRESH_EXCHANGE_ENABLED:-true}
+      # Session Configuration
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-semanticsearch_session}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
+      SESSION_COOKIE_SAMESITE: ${SESSION_COOKIE_SAMESITE:-none}
+      SESSION_MAX_AGE_SECONDS: ${SESSION_MAX_AGE_SECONDS:-604800}
+      # Redis for session store
+      REDIS_URL: redis://redis:6379
     volumes:
       - backend_uploads:/tmp/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 10s
@@ -23,7 +72,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2
     restart: unless-stopped
-    command: start-dev
+    command: start --http-enabled=true --import-realm
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
@@ -31,10 +80,12 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
-      KC_HOSTNAME: localhost
+      KC_HOSTNAME: ${KC_HOSTNAME:?Set KC_HOSTNAME}
       KC_HTTP_PORT: 8080
-    ports:
-      - "9090:8080"
+      KC_HTTP_RELATIVE_PATH: /auth
+      KC_PROXY_HEADERS: xforwarded
+    volumes:
+      - ./docker/keycloak/realm-semanticsearch.json:/opt/keycloak/data/import/realm-semanticsearch.json:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,20 +95,23 @@ services:
       context: ./frontend
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:?Set VITE_API_BASE_URL}
+        VITE_KEYCLOAK_URL: ${KEYCLOAK_URL:?Set KEYCLOAK_URL}
+        VITE_KEYCLOAK_REALM: ${KEYCLOAK_REALM:-semanticsearch}
+        VITE_KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-semanticsearch-web}
+        VITE_KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI:?Set KEYCLOAK_REDIRECT_URI}
+        VITE_KEYCLOAK_POST_LOGOUT_REDIRECT_URI: ${KEYCLOAK_POST_LOGOUT_REDIRECT_URI:?Set KEYCLOAK_POST_LOGOUT_REDIRECT_URI}
+        VITE_KEYCLOAK_SCOPE: ${KEYCLOAK_SCOPE:-openid profile email}
     restart: unless-stopped
-    environment:
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:?Set VITE_API_BASE_URL}
-      VITE_KEYCLOAK_URL: ${KEYCLOAK_URL:-http://localhost:9090}
-      VITE_KEYCLOAK_REALM: ${KEYCLOAK_REALM:-semanticsearch}
-      VITE_KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-semanticsearch-web}
-      VITE_KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI:-http://localhost:8080/login/callback}
-      VITE_KEYCLOAK_POST_LOGOUT_REDIRECT_URI: ${KEYCLOAK_POST_LOGOUT_REDIRECT_URI:-http://localhost:8080/login}
-      VITE_KEYCLOAK_SCOPE: ${KEYCLOAK_SCOPE:-openid profile email}
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/certs:/etc/nginx/certs:ro
     depends_on:
       backend:
         condition: service_healthy
 
 volumes:
+  postgres_data:
+  redis_data:
   backend_uploads:
