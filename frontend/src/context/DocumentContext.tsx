@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import * as documentService from "../services/documentService";
 import type { Document } from "../types/document";
 import { DocumentContext } from "./DocumentContextValue";
-import { useAuth } from "./useAuth";
+import { useAuth } from "../hooks/useAuth";
 
 interface DocumentProviderProps {
     children: React.ReactNode;

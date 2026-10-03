@@ -24,7 +24,7 @@ import { NavLink } from "react-router-dom";
 import React from "react";
 import { clearAuthSession, notifyAuthChanged } from "../../auth/session";
 import { getKeycloakLogoutUrl, redirectToKeycloakLogin } from "../../config/keycloak";
-import { useAuth } from "../../context/useAuth";
+import { useAuth } from "../../hooks/useAuth";
 import { apiRequest } from "../../services/http/httpClient";
 
 interface UserInfo {

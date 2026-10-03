@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import os
-from typing import Annotated
+from typing import Annotated, Optional
+
 
 import jwt
 from fastapi import Depends, Header, HTTPException, Request
@@ -18,11 +20,88 @@ SESSION_COOKIE_NAME = os.getenv(
     "semanticsearch_session",
 )
 
-# Development-only in-memory store.
-#
-# IMPORTANT:
-# Replace this with Redis/DB before production or multi-instance deployment.
-SESSION_STORE: dict[str, dict[str, object]] = {}
+# Redis configuration for production session store
+REDIS_URL = os.getenv("REDIS_URL")
+SESSION_MAX_AGE_SECONDS = int(os.getenv("SESSION_MAX_AGE_SECONDS", "604800"))
+SESSION_TTL_SECONDS = SESSION_MAX_AGE_SECONDS
+
+
+def _get_redis_client():
+    """Lazily import and return redis client class."""
+    try:
+        import redis
+        return redis
+    except ImportError:
+        return None
+
+
+class SessionStore:
+    """Abstract session store supporting both in-memory (dev) and Redis (prod)."""
+
+    def __init__(self):
+        self._redis_module = _get_redis_client()
+        self._redis: Optional["redis.Redis"] = None  # type: ignore[name-defined]
+        self._memory_store: dict[str, dict[str, object]] = {}
+        self._use_redis = REDIS_URL is not None and self._redis_module is not None
+
+        if self._use_redis:
+            try:
+                self._redis = self._redis_module.from_url(  # type: ignore[attr-defined]
+                    REDIS_URL,
+                    encoding="utf-8",
+                    decode_responses=True,
+                )
+                # Test connection
+                self._redis.ping()
+            except Exception:
+                # Fall back to memory store if Redis unavailable
+                self._use_redis = False
+                self._redis = None
+
+    def _get_redis(self) -> Optional["redis.Redis"]:  # type: ignore[name-defined]
+        if self._use_redis and self._redis:
+            try:
+                self._redis.ping()
+                return self._redis
+            except Exception:
+                self._use_redis = False
+        return None
+
+    def _make_key(self, session_id: str) -> str:
+        return f"session:{session_id}"
+
+    def get(self, session_id: str) -> Optional[dict[str, object]]:
+        r = self._get_redis()
+        if r:
+            data = r.get(self._make_key(session_id))
+            if data:
+                return json.loads(data)
+            return None
+        return self._memory_store.get(session_id)
+
+    def set(self, session_id: str, data: dict[str, object], ttl: int = SESSION_TTL_SECONDS) -> None:
+        r = self._get_redis()
+        if r:
+            r.setex(self._make_key(session_id), ttl, json.dumps(data, default=str))
+        else:
+            self._memory_store[session_id] = data
+
+    def delete(self, session_id: str) -> None:
+        r = self._get_redis()
+        if r:
+            r.delete(self._make_key(session_id))
+        else:
+            self._memory_store.pop(session_id, None)
+
+    def exists(self, session_id: str) -> bool:
+        r = self._get_redis()
+        if r:
+            return r.exists(self._make_key(session_id)) > 0
+        return session_id in self._memory_store
+
+
+# Global session store instance
+SESSION_STORE = SessionStore()
 
 
 # -----------------------------------------------------------------------------

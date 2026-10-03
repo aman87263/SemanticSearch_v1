@@ -18,7 +18,7 @@ export function ChatProvider({
         {
             id: crypto.randomUUID(),
             role: "assistant",
-            content: "Hi 👋 Ask me anything from your documents.",
+            content: "Hi 👋 Ask me anything from your PRIVATE documents or PUBLIC documents or about Aman Tiwari",
             createdAt: new Date(),
         },
     ]);
