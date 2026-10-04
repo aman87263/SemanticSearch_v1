@@ -105,10 +105,6 @@ export default function LoginCallbackPage() {
                 const accessToken = sessionPayload.data.access_token ?? null;
                 setAccessToken(accessToken);
 
-                // Mark as just logged in to prevent AuthProvider from calling restoreSession()
-                // which would race with the session cookie being established
-                sessionStorage.setItem("semanticsearch_just_logged_in", "true");
-
                 // Notify auth state change
                 clearOAuthState();
                 notifyAuthChanged();
