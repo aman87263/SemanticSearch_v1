@@ -103,10 +103,9 @@ services:
         VITE_KEYCLOAK_SCOPE: ${KEYCLOAK_SCOPE:-openid profile email}
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/certs:/etc/nginx/certs:ro
+      # TLS terminates at the host Nginx instance. Do not expose the
+      # application directly to the Internet.
+      - "127.0.0.1:8080:80"
     depends_on:
       backend:
         condition: service_healthy
