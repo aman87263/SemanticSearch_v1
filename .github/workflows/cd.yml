@@ -1,35 +1,40 @@
 name: CD - Deploy Production
 
 on:
-  push:
-    branches:
-      - main
-
-  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
 
 jobs:
   deploy:
     name: Deploy to Oracle VM
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
 
     steps:
       - name: Deploy to production
         uses: appleboy/ssh-action@v1.2.2
+        env:
+          DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-        #   script_stop: true
+          envs: DEPLOY_SHA
           script: |
             set -e
 
             cd "${{ secrets.DEPLOY_PATH }}"
-
             echo "Fetching latest main..."
             git fetch origin main
 
-            echo "Resetting production checkout..."
-            git reset --hard origin/main
+            echo "Deploying CI-validated commit: ${DEPLOY_SHA}"
+            git reset --hard "${DEPLOY_SHA}"
 
             echo "Deploying production containers..."
             docker compose \
@@ -42,5 +47,5 @@ jobs:
               --env-file .env \
               -f docker-compose.production.yml \
               ps
-
+            
             echo "Production deployment completed."
