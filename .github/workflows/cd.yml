@@ -47,5 +47,5 @@ jobs:
               --env-file .env \
               -f docker-compose.production.yml \
               ps
-
+            
             echo "Production deployment completed."

@@ -63,6 +63,9 @@ jobs:
 
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
+      
+      - name: Verify authentication dependencies
+        run: python -c "import cryptography; print('cryptography:', cryptography.__version__)"
 
       - name: Check Python syntax
         run: python -m compileall -q app

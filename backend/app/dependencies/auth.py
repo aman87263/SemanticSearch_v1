@@ -249,7 +249,8 @@ def _decode_claims_from_keycloak(token: str) -> dict:
 
         return claims if isinstance(claims, dict) else {}
 
-    except Exception:
+    except Exception as exc:
+        print("KEYCLOAK JWT ERROR:", repr(exc), flush=True)
         return {}
 
 
