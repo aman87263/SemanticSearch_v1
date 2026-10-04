@@ -25,6 +25,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          timeout: 10m
           envs: DEPLOY_SHA
           script: |
             set -e
@@ -47,5 +48,5 @@ jobs:
               --env-file .env \
               -f docker-compose.production.yml \
               ps
-            
+
             echo "Production deployment completed."
