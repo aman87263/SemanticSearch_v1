@@ -30,6 +30,7 @@ PUBLIC_PATHS: Set[str] = {
     "/api/health",
     "/api/auth/session",
     "/api/auth/refresh",  # Allow refresh to validate session itself
+    "/api/chat",  # Chat supports anonymous access to public documents
     "/docs",
     "/redoc",
     "/openapi.json",
