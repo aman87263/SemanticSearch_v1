@@ -1,0 +1,46 @@
+name: CD - Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Oracle VM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to production
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+        #   script_stop: true
+          script: |
+            set -e
+
+            cd "${{ secrets.DEPLOY_PATH }}"
+
+            echo "Fetching latest main..."
+            git fetch origin main
+
+            echo "Resetting production checkout..."
+            git reset --hard origin/main
+
+            echo "Deploying production containers..."
+            docker compose \
+              --env-file .env \
+              -f docker-compose.production.yml \
+              up -d --build --remove-orphans
+
+            echo "Checking container status..."
+            docker compose \
+              --env-file .env \
+              -f docker-compose.production.yml \
+              ps
+
+            echo "Production deployment completed."
