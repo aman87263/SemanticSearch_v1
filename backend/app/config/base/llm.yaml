@@ -3,3 +3,5 @@ llm:
   model: qwen2.5:1.5b
   temperature: 0.2
   max_tokens: 1000
+  fallback_provider: null
+  fallback_model: null

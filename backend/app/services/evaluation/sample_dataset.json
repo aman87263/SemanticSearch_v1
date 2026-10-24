@@ -1,0 +1,32 @@
+[
+  {
+    "query": "How do I reset my password?",
+    "relevant_doc_ids": ["550e8400-e29b-41d4-a716-446655440000"],
+    "relevant_chunk_ids": ["550e8400-e29b-41d4-a716-446655440001", "550e8400-e29b-41d4-a716-446655440002"],
+    "metadata": {"category": "account_management"}
+  },
+  {
+    "query": "CSRF protection middleware",
+    "relevant_doc_ids": ["660e8500-e29b-41d4-a716-446655440000"],
+    "relevant_chunk_ids": ["660e8500-e29b-41d4-a716-446655440001", "660e8500-e29b-41d4-a716-446655440002"],
+    "metadata": {"category": "security"}
+  },
+  {
+    "query": "What is tokenization in payments?",
+    "relevant_doc_ids": ["770e8600-e29b-41d4-a716-446655440000"],
+    "relevant_chunk_ids": ["770e8600-e29b-41d4-a716-446655440001", "770e8600-e29b-41d4-a716-446655440002"],
+    "metadata": {"category": "payments"}
+  },
+  {
+    "query": "How to configure CORS in FastAPI?",
+    "relevant_doc_ids": ["880e8700-e29b-41d4-a716-446655440000"],
+    "relevant_chunk_ids": ["880e8700-e29b-41d4-a716-446655440001"],
+    "metadata": {"category": "backend"}
+  },
+  {
+    "query": "Keycloak authentication setup",
+    "relevant_doc_ids": ["990e8800-e29b-41d4-a716-446655440000"],
+    "relevant_chunk_ids": ["990e8800-e29b-41d4-a716-446655440001", "990e8800-e29b-41d4-a716-446655440002"],
+    "metadata": {"category": "authentication"}
+  }
+]

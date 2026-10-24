@@ -1,0 +1,33 @@
+# Resilience configuration for external providers.
+# Implements semanticAdditions.md §6, §7, §8, §9.
+#
+# Applied to every external provider call (embedding, LLM, reranker):
+#   Timeout → Semaphore → Retry+jitter → Circuit Breaker
+resilience:
+  # Timeout: maximum time before a call is abandoned (seconds)
+  timeout_sec: 5.0
+
+  # Semaphore: max concurrent in-flight requests per provider
+  max_concurrent: 10
+
+  # Retry: exponential backoff with jitter
+  retry_attempts: 3
+  retry_base_delay: 0.5
+
+  # Circuit Breaker
+  failure_threshold: 5
+  recovery_timeout_sec: 30.0
+  half_open_max_calls: 2
+
+# Provider fallback chain (semanticAdditions.md §19)
+# Primary provider is tried first; on failure the fallback is attempted.
+providers:
+  embedding:
+    primary: sentence_transformer
+    fallback: null  # TODO: add ollama as fallback
+  llm:
+    primary: ollama
+    fallback: groq
+  reranker:
+    primary: sentence_transformer
+    fallback: null

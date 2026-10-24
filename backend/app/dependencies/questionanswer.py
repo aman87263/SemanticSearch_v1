@@ -12,6 +12,10 @@ from app.services.question_answering.question_answering_service import (
 )
 from app.services.retrieval.retrieval_service import RetrievalService
 from app.services.llm.llm_service import LLMService
+from app.services.resilience.policies import (
+    get_llm_resilience_policy as get_singleton_llm_policy,
+)
+from app.services.resilience.factory import create_llm_resilience_policy
 
 
 def get_llm_provider() -> ILLMProvider:
@@ -29,8 +33,23 @@ def get_llm_service(
         Depends(get_llm_provider),
     ],
 ) -> LLMService:
+    fallback_provider = None
+    if settings.llm.fallback_provider and settings.llm.fallback_model:
+        fallback_provider = LLMFactory.create(
+            provider_name=settings.llm.fallback_provider,
+            model_name=settings.llm.fallback_model,
+            temperature=settings.llm.temperature,
+            max_tokens=settings.llm.max_tokens,
+        )
 
-    return LLMService(provider)
+    return LLMService(
+            provider,
+            resilience_policy=get_singleton_llm_policy(),
+            fallback_provider=fallback_provider,
+            fallback_resilience_policy=(
+                get_singleton_llm_policy() if fallback_provider else None
+            ),
+        )
 
 
 def get_question_answer_service(

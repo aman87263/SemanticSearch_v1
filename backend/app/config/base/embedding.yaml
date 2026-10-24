@@ -1,2 +1,4 @@
 provider: sentence_transformer
 model_name: sentence-transformers/all-MiniLM-L6-v2
+fallback_provider: null
+fallback_model: null

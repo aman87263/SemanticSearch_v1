@@ -22,14 +22,19 @@ app = FastAPI(
 # Security middleware for session cookie validation
 from starlette.middleware.base import BaseHTTPMiddleware
 
-# Paths that don't require session validation
+# Paths that don't require session validation.
+# NOTE: auth routes are mounted under /api/auth (see api/routes/__init__.py),
+# so the public set must include the /api prefix — otherwise the session
+# middleware blocks bearer-token auth before get_current_user ever runs.
 PUBLIC_PATHS: Set[str] = {
     "/auth/",
     "/auth/me",
     "/auth/keycloak/config",
     "/api/health",
     "/api/auth/session",
-    "/api/auth/refresh",  # Allow refresh to validate session itself
+    "/api/auth/refresh",
+    "/api/auth/me",
+    "/api/auth/keycloak/config",
     "/api/chat",  # Chat supports anonymous access to public documents
     "/docs",
     "/redoc",
@@ -53,7 +58,7 @@ ALLOWED_ORIGINS = {
     if origin.strip()
 }
 
-from app.dependencies.auth import get_session_from_cookie
+from app.dependencies.auth import get_session_from_cookie, _extract_bearer_token
 
 class SessionValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -64,7 +69,15 @@ class SessionValidationMiddleware(BaseHTTPMiddleware):
         # Skip session validation for public endpoints
         if request.url.path in PUBLIC_PATHS:
             return await call_next(request)
-        
+
+        # Allow bearer-token auth to bypass session-cookie validation — the
+        # token is validated downstream by get_current_user in each route's
+        # dependency chain. Without this, bearer-authenticated requests to
+        # non-public paths get rejected before the route runs.
+        authorization = request.headers.get("authorization")
+        if authorization and _extract_bearer_token(authorization):
+            return await call_next(request)
+
         # Validate session cookie for protected routes
         session = get_session_from_cookie(request)
         if not session:
@@ -99,10 +112,11 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
 
         path = request.url.path
 
-        # Allow the initial auth-code exchange to create the first server-side session
-        # before any session cookie exists. Browser requests usually include Origin,
-        # but direct API/test calls can legitimately omit it at bootstrap time.
-        if path == "/api/auth/session":
+        # Allow the initial auth-code exchange AND session refresh to create/rotate
+        # the first server-side session before any session cookie exists. Browser
+        # requests usually include Origin, but direct API/test calls can
+        # legitimately omit it at bootstrap time.
+        if path in ("/api/auth/session", "/api/auth/refresh"):
             origin = request.headers.get("origin")
             referer = request.headers.get("referer")
 
@@ -195,6 +209,13 @@ app.add_middleware(
 app.add_middleware(
     CSRFProtectionMiddleware,
 )
+
+# Observability middleware for search pipeline tracing (semanticAdditions.md §20)
+from app.middleware.observability_middleware import SearchObservabilityMiddleware
+app.add_middleware(
+    SearchObservabilityMiddleware,
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(ALLOWED_ORIGINS),

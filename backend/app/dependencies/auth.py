@@ -284,17 +284,9 @@ def get_current_user(
     claims = _decode_claims_from_keycloak(token)
 
     if not claims:
-        # Return unauthenticated user instead of raising
-        return CurrentUser(
-            user_id="",
-            preferred_username=None,
-            name=None,
-            email=None,
-            roles=[],
-            authenticated=False,
-            auth_header=None,
-            identity_provider="anonymous",
-        )
+        # A bearer token was supplied but could not be decoded — reject it.
+        # (Absence of a bearer token is handled earlier as anonymous access.)
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
 
     user_id = (
         claims.get("sub")

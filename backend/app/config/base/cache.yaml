@@ -1,0 +1,15 @@
+# Cache configuration for multi-level caching with versioned keys.
+# Implements semanticAdditions.md §1, §2, §3, §4, §15.
+#
+# enabled: Master switch for caching.
+# l1_max_items: Maximum items in the process-local LRU cache.
+# l1_ttl_seconds: TTL for L1 cache entries.
+# l2_ttl_seconds: TTL for L2 (Redis) cache entries.
+# search_generation: Pipeline generation for cache invalidation.
+#   Bump this value to invalidate all cached search results (§4).
+cache:
+  enabled: true
+  l1_max_items: 1000
+  l1_ttl_seconds: 300
+  l2_ttl_seconds: 3600
+  search_generation: 1

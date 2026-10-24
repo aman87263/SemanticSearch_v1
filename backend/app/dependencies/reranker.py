@@ -3,6 +3,7 @@ from functools import lru_cache
 from app.core.settings import settings
 from app.services.reranking.reranker_factory import RerankerFactory
 from app.services.reranking.reranker_service import RerankerService
+from app.services.resilience.factory import create_reranker_resilience_policy
 
 
 @lru_cache
@@ -16,5 +17,6 @@ def get_reranker_service() -> RerankerService | None:
         model_name=settings.reranking.model_name,
     )
 
-    return RerankerService(provider)
+    resilience_policy = create_reranker_resilience_policy()
+    return RerankerService(provider=provider, resilience_policy=resilience_policy)
 
